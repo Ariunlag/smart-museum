@@ -1,0 +1,36 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: positioning-service
+
+museum:
+  building:
+    floors: 3
+    grid-rows: 10
+    grid-cols: 10
+    cell-size-meters: 2
+
+  beacons:
+    total: 20
+    default-rssi: -100
+    floor-beacons:
+      - id: "floor-beacon-f1"
+        floor: 1
+      - id: "floor-beacon-f2"
+        floor: 2
+      - id: "floor-beacon-f3"
+        floor: 3
+
+  floor:
+    strategy: beacon    # beacon | manual | qr
+
+  art:
+    nearby-range: 2     # хэдэн grid зай дотор art хайх
+    max-results: 2      # хамгийн ойрын хэдэн art явуулах
+
+qdrant:
+  host: localhost
+  port: 6334
+  collection: fingerprints

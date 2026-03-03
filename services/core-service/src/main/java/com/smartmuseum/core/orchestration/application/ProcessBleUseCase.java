@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -48,8 +49,14 @@ public class ProcessBleUseCase {
                 req.deviceId(), pos.gridId(), pos.floorId()
         );
 
-        // 3. ArtInfo → ойролцоох art авна
-        ArtInfoResult art = artInfoClient.findNearest(pos.gridId(), pos.floorId());
+        // 3. ArtInfo → ойролцоох art авна (service байхгүй бол хоосон)
+        ArtInfoResult art;
+        try {
+            art = artInfoClient.findNearest(pos.gridId(), pos.floorId());
+        } catch (Exception e) {
+            log.warn("ArtInfo unavailable: {}", e.getMessage());
+            art = new ArtInfoResult(List.of());
+        }
         log.info("Arts found: {}", art.arts().size());
 
         // 4. WebSocket → утас руу байрлал + art явуулна
