@@ -1,0 +1,76 @@
+package com.smartmuseum.core.client.ws;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartmuseum.core.client.ws.dto.PushMessage;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.*;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.util.Map;
+
+/**
+ * Гар утастай WebSocket холболт удирдана.
+ *
+ * Холболт тогтоох:  ws://localhost:8080/ws?deviceId=phone-123
+ * Холболт тасрах:   session-г registry-с устгана
+ * Push хийх:        push(deviceId, payload) дуудна
+ */
+@Component
+public class DeviceWebSocketHandler extends TextWebSocketHandler {
+
+    private final SessionRegistry registry;
+    private final ObjectMapper     mapper;
+
+    public DeviceWebSocketHandler(SessionRegistry registry, ObjectMapper mapper) {
+        this.registry = registry;
+        this.mapper   = mapper;
+    }
+
+    // ── Утас холбогдоход ────────────────────────────────
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        String deviceId = extractDeviceId(session);
+        if (deviceId == null || deviceId.isBlank()) {
+            session.close(CloseStatus.BAD_DATA);
+            return;
+        }
+        registry.addSession(deviceId, session);
+
+        // Welcome message явуулна
+        push(deviceId, new PushMessage(
+                "connected",
+                deviceId,
+                Map.of("status", "ok")
+        ));
+    }
+
+    // ── Утас тасрахад ───────────────────────────────────
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+        String deviceId = extractDeviceId(session);
+        if (deviceId != null) registry.removeSession(deviceId);
+    }
+
+    // ── Утас руу push хийх ──────────────────────────────
+    public void push(String deviceId, PushMessage message) {
+        WebSocketSession session = registry.getSession(deviceId);
+        if (session == null || !session.isOpen()) return;
+        try {
+            String json = mapper.writeValueAsString(message);
+            session.sendMessage(new TextMessage(json));
+        } catch (IOException ignored) {}
+    }
+
+    // ── URL-с deviceId авна ─────────────────────────────
+    // ws://localhost:8080/ws?deviceId=phone-123
+    private String extractDeviceId(WebSocketSession session) {
+        if (session.getUri() == null) return null;
+        return UriComponentsBuilder
+                .fromUri(session.getUri())
+                .build()
+                .getQueryParams()
+                .getFirst("deviceId");
+    }
+}

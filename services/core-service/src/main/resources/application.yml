@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: core-service
+  main:
+    web-application-type: servlet  
+
+museum:
+  websocket:
+    path: /ws
+
+  positioning:
+    base-url: http://localhost:8081
+    endpoint: /internal/positioning/readings
+    timeout-ms: 2000
+
+  artinfo:
+    base-url: http://localhost:8082
+    endpoint: /internal/art/nearest
+    timeout-ms: 2000
+
+  mqtt:
+    broker-url: tcp://localhost:1883
+    client-id: core-service
+    heatmap-topic: museum/heatmap/grid
