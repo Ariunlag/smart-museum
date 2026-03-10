@@ -4,6 +4,7 @@ import com.smartmuseum.core.client.web.dto.BleIngestRequest;
 import com.smartmuseum.core.client.ws.DeviceWebSocketHandler;
 import com.smartmuseum.core.client.ws.SessionRegistry;
 import com.smartmuseum.core.client.ws.dto.PushMessage;
+import com.smartmuseum.core.common.config.MuseumProperties;
 import com.smartmuseum.core.integration.artinfo.http.dto.ArtInfoResult;
 import com.smartmuseum.core.integration.mqtt.HeatmapPublisher;
 import com.smartmuseum.core.integration.positioning.http.dto.PositioningResult;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -25,34 +27,47 @@ public class ProcessBleUseCase {
     private final HeatmapPublisher       heatmapPublisher;
     private final DeviceWebSocketHandler wsHandler;
     private final SessionRegistry        sessionRegistry;
+    private final MuseumProperties       props;
 
     public ProcessBleUseCase(PositioningClient positioningClient,
                              ArtInfoClient artInfoClient,
                              HeatmapPublisher heatmapPublisher,
                              DeviceWebSocketHandler wsHandler,
-                             SessionRegistry sessionRegistry) {
+                             SessionRegistry sessionRegistry,
+                             MuseumProperties props) {
         this.positioningClient = positioningClient;
         this.artInfoClient     = artInfoClient;
         this.heatmapPublisher  = heatmapPublisher;
         this.wsHandler         = wsHandler;
         this.sessionRegistry   = sessionRegistry;
+        this.props             = props;
     }
 
     public void handle(BleIngestRequest req) {
-        // 1. Positioning → gridId, floorId, x, y авна
+
+        // 1. Positioning → gridId, floorId, x, y
+        if (!props.getServices().getPositioning().isEnabled()) {
+            log.warn("Positioning service disabled, skipping");
+            return;
+        }
         PositioningResult pos = positioningClient.locate(req);
         log.info("Position resolved: floor={} grid={}", pos.floorId(), pos.gridId());
 
-        // 2. Байрлал өөрчлөгдсөн эсэхийг шалгана
-        boolean locationChanged = sessionRegistry.hasLocationChanged(
-                req.deviceId(), pos.gridId(), pos.floorId()
-        );
+        // 2. ArtInfo → ойролцоох art (optional)
+        ArtInfoResult art;
+        if (props.getServices().getArtinfo().isEnabled()) {
+            try {
+                art = artInfoClient.findNearest(pos.gridId(), pos.floorId());
+                log.info("Arts found: {}", art.arts().size());
+            } catch (Exception e) {
+                log.warn("ArtInfo unavailable: {}", e.getMessage());
+                art = new ArtInfoResult(List.of());
+            }
+        } else {
+            art = new ArtInfoResult(List.of());
+        }
 
-        // 3. ArtInfo → ойролцоох art авна
-        ArtInfoResult art = artInfoClient.findNearest(pos.gridId(), pos.floorId());
-        log.info("Arts found: {}", art.arts().size());
-
-        // 4. WebSocket → утас руу байрлал + art явуулна
+        // 3. WebSocket → device-д push
         wsHandler.push(req.deviceId(),
                 new PushMessage(
                         "location_update",
@@ -66,11 +81,16 @@ public class ProcessBleUseCase {
                 )
         );
 
-        // 5. Байрлал өөрчлөгдсөн бол heatmap update
-        if (locationChanged) {
-            String prevGridId = sessionRegistry.getLastGridId(req.deviceId());
-            heatmapPublisher.publish(pos.gridId(), pos.floorId(), prevGridId);
-            sessionRegistry.updateLocation(req.deviceId(), pos.gridId(), pos.floorId());
+        // 4. Heatmap → байрлал өөрчлөгдсөн бол MQTT publish
+        if (props.getServices().getHeatmap().isEnabled()) {
+            boolean locationChanged = sessionRegistry.hasLocationChanged(
+                    req.deviceId(), pos.gridId(), pos.floorId()
+            );
+            if (locationChanged) {
+                String prevGridId = sessionRegistry.getLastGridId(req.deviceId());
+                heatmapPublisher.publish(pos.gridId(), pos.floorId(), prevGridId);
+                sessionRegistry.updateLocation(req.deviceId(), pos.gridId(), pos.floorId());
+            }
         }
     }
 }

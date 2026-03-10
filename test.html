@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Museum Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; padding: 16px; }
+    h2 { color: #569cd6; margin-bottom: 12px; }
+    h3 { color: #ce9178; margin-bottom: 8px; }
+    .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .panel { background: #252526; border: 1px solid #3c3c3c; border-radius: 8px; padding: 14px; }
+    label { color: #9cdcfe; font-size: 11px; display: block; margin-bottom: 4px; }
+    input { width: 100%; background: #1e1e1e; border: 1px solid #3c3c3c; color: #d4d4d4;
+            padding: 5px 8px; border-radius: 4px; font-family: monospace; margin-bottom: 6px; font-size: 12px; }
+    button { background: #0e639c; color: white; border: none; padding: 7px 14px;
+             border-radius: 4px; cursor: pointer; width: 100%; margin-top: 4px; font-size: 12px; }
+    button:hover { background: #1177bb; }
+    button.red { background: #c0392b; }
+    button.red:hover { background: #e74c3c; }
+    button.green { background: #2d5a27; }
+    button.green:hover { background: #3a7a32; }
+    .status { padding: 5px 8px; border-radius: 4px; font-size: 11px; margin: 6px 0; }
+    .connected    { background: #1e3a1e; color: #4ec94e; border: 1px solid #4ec94e; }
+    .disconnected { background: #3a1e1e; color: #e74c3c; border: 1px solid #e74c3c; }
+    .log { background: #1e1e1e; border: 1px solid #3c3c3c; border-radius: 4px;
+           height: 200px; overflow-y: auto; padding: 8px; font-size: 11px; }
+    .log-item { margin-bottom: 6px; border-bottom: 1px solid #2d2d2d; padding-bottom: 6px; }
+    .beacon-row { display: flex; gap: 6px; margin-bottom: 4px; }
+    .beacon-row input { margin-bottom: 0; }
+
+    /* Heatmap grid */
+    .heatmap-wrap { overflow-x: auto; }
+    .heatmap-grid { display: inline-grid; gap: 2px; }
+    .heatmap-cell {
+      width: 36px; height: 36px; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: bold; cursor: default;
+      transition: background 0.4s;
+      border: 1px solid #3c3c3c;
+    }
+    .floor-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+    .floor-tab { background: #2d2d2d; border: 1px solid #3c3c3c; color: #d4d4d4;
+                 padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    .floor-tab.active { background: #0e639c; border-color: #569cd6; }
+    .legend { display: flex; gap: 6px; margin-top: 8px; align-items: center; font-size: 10px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 2px; }
+    .heatmap-info { font-size: 11px; color: #808080; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<h2>🏛️ Smart Museum — Test UI</h2>
+
+<div class="grid-layout">
+  <!-- WebSocket panel -->
+  <div class="panel">
+    <h3>WebSocket</h3>
+    <label>Device ID</label>
+    <input id="deviceId" value="phone-123">
+    <button onclick="connect()">Холбох</button>
+    <button class="red" onclick="disconnect()" style="margin-top:4px">Таслах</button>
+    <div id="wsStatus" class="status disconnected">● Холбогдоогүй</div>
+    <div class="log" id="log"><div style="color:#808080">Messages энд гарна...</div></div>
+  </div>
+
+  <!-- BLE Signal panel -->
+  <div class="panel">
+    <h3>BLE Signal</h3>
+    <label>Core URL</label>
+    <input id="coreUrl" value="http://localhost:8080">
+    <label>Beacons</label>
+    <div id="beacons">
+      <div class="beacon-row">
+        <input placeholder="beaconId" value="floor-beacon-f1" style="flex:2">
+        <input placeholder="rssi" value="-65" style="flex:1">
+      </div>
+      <div class="beacon-row">
+        <input placeholder="beaconId" value="beacon-3" style="flex:2">
+        <input placeholder="rssi" value="-72" style="flex:1">
+      </div>
+      <div class="beacon-row">
+        <input placeholder="beaconId" value="beacon-7" style="flex:2">
+        <input placeholder="rssi" value="-58" style="flex:1">
+      </div>
+    </div>
+    <button class="green" onclick="addBeacon()" style="margin-bottom:6px;width:auto;padding:4px 10px">+ Beacon</button>
+    <button onclick="sendBle()">📡 Signal явуулах</button>
+    <div id="sendStatus" style="margin-top:6px;font-size:11px;color:#808080"></div>
+  </div>
+</div>
+
+<!-- Heatmap panel -->
+<div class="panel">
+  <h3>🔥 Real-time Heatmap</h3>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+    <label style="margin:0">Heatmap URL:</label>
+    <input id="heatmapUrl" value="http://localhost:8083" style="width:180px;margin:0">
+    <div class="floor-tabs" id="floorTabs"></div>
+    <button onclick="loadHeatmap()" style="width:auto;padding:5px 12px">🔄 Refresh</button>
+    <button class="green" onclick="toggleAutoRefresh()" id="autoBtn" style="width:auto;padding:5px 12px">▶ Auto</button>
+  </div>
+  <div class="heatmap-info" id="heatmapInfo">Heatmap ачааллаагүй байна</div>
+  <div class="heatmap-wrap">
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+  </div>
+  <div class="legend">
+    <div class="legend-box" style="background:#1e1e1e;border:1px solid #3c3c3c"></div><span>0</span>
+    <div class="legend-box" style="background:#1a3a1e"></div><span>1-2</span>
+    <div class="legend-box" style="background:#2d6a2d"></div><span>3-5</span>
+    <div class="legend-box" style="background:#e67e22"></div><span>6-9</span>
+    <div class="legend-box" style="background:#c0392b"></div><span>10+ 🚨</span>
+  </div>
+</div>
+
+<script>
+  let ws = null, autoInterval = null, currentFloor = 1, floors = 3, rows = 10, cols = 10;
+
+  // ── Floor tabs ───────────────────────────────────────
+  function initFloorTabs() {
+    const tabs = document.getElementById('floorTabs');
+    tabs.innerHTML = '';
+    for (let f = 1; f <= floors; f++) {
+      const b = document.createElement('button');
+      b.className = 'floor-tab' + (f === currentFloor ? ' active' : '');
+      b.textContent = f + '-р давхар';
+      b.onclick = () => { currentFloor = f; initFloorTabs(); loadHeatmap(); };
+      tabs.appendChild(b);
+    }
+  }
+  initFloorTabs();
+
+  // ── WebSocket ────────────────────────────────────────
+  function connect() {
+    const deviceId = document.getElementById('deviceId').value;
+    ws = new WebSocket(`ws://localhost:8080/ws?deviceId=${deviceId}`);
+    ws.onopen  = () => {
+      document.getElementById('wsStatus').className = 'status connected';
+      document.getElementById('wsStatus').textContent = '● ' + deviceId;
+    };
+    ws.onclose = () => {
+      document.getElementById('wsStatus').className = 'status disconnected';
+      document.getElementById('wsStatus').textContent = '● Холбогдоогүй';
+    };
+    ws.onmessage = e => addLog(JSON.parse(e.data));
+  }
+
+  function disconnect() { if (ws) ws.close(); }
+
+  function addLog(msg) {
+    const log = document.getElementById('log');
+    const el  = document.createElement('div');
+    el.className = 'log-item';
+    const time = new Date().toLocaleTimeString();
+    if (msg.type === 'location_update') {
+      const p = msg.payload;
+      const arts = p.arts?.length ? p.arts.map(a => `🖼 ${a.title}`).join(', ') : '(art байхгүй)';
+      el.innerHTML = `<span style="color:#808080">${time}</span> <span style="color:#4ec94e">📍 F${p.floorId} (${p.x},${p.y})</span> ${arts}`;
+    } else {
+      el.innerHTML = `<span style="color:#808080">${time}</span> <span style="color:#569cd6">${msg.type}</span>`;
+    }
+    log.insertBefore(el, log.firstChild);
+  }
+
+  // ── BLE send ─────────────────────────────────────────
+  function addBeacon() {
+    const d = document.createElement('div');
+    d.className = 'beacon-row';
+    d.innerHTML = `<input placeholder="beaconId" style="flex:2"><input placeholder="rssi" value="-70" style="flex:1">`;
+    document.getElementById('beacons').appendChild(d);
+  }
+
+  async function sendBle() {
+    const deviceId = document.getElementById('deviceId').value;
+    const coreUrl  = document.getElementById('coreUrl').value;
+    const readings = [];
+    document.querySelectorAll('.beacon-row').forEach(row => {
+      const [b, r] = row.querySelectorAll('input');
+      if (b.value && r.value) readings.push({ beaconId: b.value, rssi: parseInt(r.value) });
+    });
+    try {
+      const res  = await fetch(`${coreUrl}/ble/readings`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, timestamp: Date.now(), readings })
+      });
+      const data = await res.json();
+      const el   = document.getElementById('sendStatus');
+      el.textContent = '✅ ' + JSON.stringify(data);
+      el.style.color = '#4ec94e';
+      setTimeout(loadHeatmap, 1000);
+    } catch (e) {
+      const el = document.getElementById('sendStatus');
+      el.textContent = '❌ ' + e.message;
+      el.style.color = '#e74c3c';
+    }
+  }
+
+  // ── Heatmap ──────────────────────────────────────────
+  function heatColor(count) {
+    if (count === 0)  return '#1a1a1a';
+    if (count <= 2)   return '#1a3a1e';
+    if (count <= 5)   return '#2d6a2d';
+    if (count <= 9)   return '#e67e22';
+    return '#c0392b'; // 10+ CROWD
+  }
+
+  async function loadHeatmap() {
+    const url = document.getElementById('heatmapUrl').value;
+    try {
+      const res  = await fetch(`${url}/api/heatmap/${currentFloor}`);
+      const data = await res.json();
+      renderHeatmap(data);
+    } catch (e) {
+      document.getElementById('heatmapInfo').textContent = '❌ Heatmap service холбогдохгүй байна';
+    }
+  }
+
+  function renderHeatmap(data) {
+    const grid = document.getElementById('heatmapGrid');
+    grid.style.gridTemplateColumns = `repeat(${cols}, 36px)`;
+    grid.innerHTML = '';
+
+    const grids = data.grids || {};
+    document.getElementById('heatmapInfo').textContent =
+      `${currentFloor}-р давхар | Нийт: ${data.total || 0} хүн | ${new Date().toLocaleTimeString()}`;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const gridId = String.fromCharCode(65 + r) + (c + 1);
+        const count  = grids[gridId] || 0;
+        const cell   = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        cell.style.background = heatColor(count);
+        cell.style.color = count > 0 ? '#fff' : '#444';
+        cell.title = `${gridId}: ${count} хүн`;
+        cell.textContent = count > 0 ? count : '';
+        if (count >= 10) cell.textContent = '🚨';
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  function toggleAutoRefresh() {
+    const btn = document.getElementById('autoBtn');
+    if (autoInterval) {
+      clearInterval(autoInterval);
+      autoInterval = null;
+      btn.textContent = '▶ Auto';
+      btn.className = 'green';
+    } else {
+      autoInterval = setInterval(loadHeatmap, 3000);
+      btn.textContent = '⏹ Stop';
+      btn.className = 'red';
+      loadHeatmap();
+    }
+  }
+</script>
+</body>
+</html>

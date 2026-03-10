@@ -21,7 +21,7 @@ public class ArtInfoHttpClient implements ArtInfoClient {
 
     @Override
     public ArtInfoResult findNearest(String gridId, int floorId) {
-        var a = props.getArtInfo();
+        var a = props.getServices().getArtinfo();
         return webClient.get()
                 .uri(a.getBaseUrl() + a.getEndpoint(),
                         b -> b.queryParam("gridId", gridId)

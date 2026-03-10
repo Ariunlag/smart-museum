@@ -1,0 +1,19 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: heatmap-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/smartmuseum
+
+museum:
+  mqtt:
+    broker-url: tcp://localhost:1883
+    client-id: heatmap-service
+    heatmap-topic: museum/heatmap/grid
+
+  heatmap:
+    persist-interval-minutes: 5   # MongoDB-д хэдэн минут тутам хадгалах
+    crowd-threshold: 10           # Хэдэн хүнээс дээш бол OVERCROWDED

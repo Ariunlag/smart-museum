@@ -1,0 +1,80 @@
+package com.smartmuseum.heatmap.service;
+
+import com.smartmuseum.heatmap.config.HeatmapProperties;
+import com.smartmuseum.heatmap.store.GridCount;
+import com.smartmuseum.heatmap.store.GridCountRepository;
+import com.smartmuseum.heatmap.store.HeatmapStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+@Service
+public class HeatmapService {
+
+    private static final Logger log = LoggerFactory.getLogger(HeatmapService.class);
+
+    private final HeatmapStore        store;
+    private final GridCountRepository repository;
+    private final HeatmapProperties   props;
+
+    public HeatmapService(HeatmapStore store,
+                          GridCountRepository repository,
+                          HeatmapProperties props) {
+        this.store      = store;
+        this.repository = repository;
+        this.props      = props;
+    }
+
+    /**
+     * MQTT event ирэхэд дуудагдана.
+     * gridId    → +1 (шинэ байрлал)
+     * prevGridId → -1 (өмнөх байрлал, null бол анхны орох)
+     */
+    public void processEvent(String gridId, int floorId, String prevGridId) {
+        // Өмнөх grid-с гарсан
+        if (prevGridId != null) {
+            store.leave(prevGridId, floorId);
+        }
+        // Шинэ grid-д орсон
+        store.enter(gridId, floorId);
+
+        // Crowd threshold шалгана
+        int count = store.getCount(gridId, floorId);
+        if (count >= props.getHeatmap().getCrowdThreshold()) {
+            log.warn("CROWD ALERT: grid={} floor={} count={}", gridId, floorId, count);
+            // TODO: MQTT-р alert publish хийнэ (дараа нэмнэ)
+        }
+    }
+
+    /** Хэрэглэгч disconnect болсон үед */
+    public void processLeave(String gridId, int floorId) {
+        if (gridId != null) {
+            store.leave(gridId, floorId);
+        }
+    }
+
+    /**
+     * Scheduler: yml-д тохируулсан interval-р MongoDB-д persist хийнэ.
+     * fixedDelayString — yml-с авна
+     */
+    @Scheduled(fixedDelayString = "#{${museum.heatmap.persist-interval-minutes} * 60000}")
+    public void persist() {
+        Map<String, Integer> snapshot = store.snapshot();
+        snapshot.forEach((key, count) -> {
+            // key format: "floorId:gridId"
+            String[] parts   = key.split(":");
+            int    floorId   = Integer.parseInt(parts[0]);
+            String gridId    = parts[1];
+
+            var existing = repository.findByGridIdAndFloorId(gridId, floorId);
+            GridCount doc = existing.orElse(new GridCount(gridId, floorId));
+            doc.setCount(count);
+            doc.setUpdatedAt(System.currentTimeMillis());
+            repository.save(doc);
+        });
+        log.info("Heatmap persisted: {} grids", snapshot.size());
+    }
+}
