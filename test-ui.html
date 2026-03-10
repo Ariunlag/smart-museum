@@ -43,13 +43,13 @@
     <h3 style="color:#ce9178;margin-bottom:12px">WebSocket</h3>
     <label>Device ID</label>
     <input id="deviceId" value="phone-123">
-    <button onclick="connect()">Холбох</button>
-    <button class="red" onclick="disconnect()" style="margin-top:6px">Таслах</button>
-    <div id="wsStatus" class="status disconnected" style="margin-top:10px">● Холбогдоогүй</div>
+    <button onclick="connect()">Connect</button>
+    <button class="red" onclick="disconnect()" style="margin-top:6px">Disconnect</button>
+    <div id="wsStatus" class="status disconnected" style="margin-top:10px">● Disconnected</div>
 
     <h3 style="color:#ce9178;margin:12px 0 8px">Messages</h3>
     <div class="log" id="log">
-      <div style="color:#808080">WebSocket message-үүд энд гарна...</div>
+      <div style="color:#808080">WebSocket messages ...</div>
     </div>
   </div>
 
@@ -74,9 +74,9 @@
         <input placeholder="rssi" value="-58" style="flex:1">
       </div>
     </div>
-    <button class="add-btn" onclick="addBeacon()" style="margin-bottom:8px">+ Beacon нэмэх</button>
+    <button class="add-btn" onclick="addBeacon()" style="margin-bottom:8px">+ add Beacon</button>
 
-    <button onclick="sendBle()" style="margin-top:8px">📡 Signal явуулах</button>
+    <button onclick="sendBle()" style="margin-top:8px">Send signal</button>
 
     <div id="sendStatus" style="margin-top:8px;font-size:12px;color:#808080"></div>
   </div>
@@ -93,12 +93,12 @@
 
     ws.onopen = () => {
       document.getElementById('wsStatus').className = 'status connected';
-      document.getElementById('wsStatus').textContent = '● Холбогдсон: ' + deviceId;
+      document.getElementById('wsStatus').textContent = '● Connected: ' + deviceId;
     };
 
     ws.onclose = () => {
       document.getElementById('wsStatus').className = 'status disconnected';
-      document.getElementById('wsStatus').textContent = '● Холбогдоогүй';
+      document.getElementById('wsStatus').textContent = '● Not Connected';
     };
 
     ws.onmessage = (e) => {

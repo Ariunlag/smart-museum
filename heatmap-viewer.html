@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simple Heatmap</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: white;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    input, select, button {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: white;
+    }
+
+    button {
+      cursor: pointer;
+      background: #2563eb;
+      border: none;
+    }
+
+    .info {
+      margin-bottom: 12px;
+      color: #cbd5e1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 50px);
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .label {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      font-size: 9px;
+      color: #cbd5e1;
+      font-weight: normal;
+    }
+
+    .raw {
+      margin-top: 20px;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simple Museum Heatmap</h2>
+
+  <div class="toolbar">
+    <input id="baseUrl" value="http://localhost:8083" />
+    <select id="floorId">
+      <option value="1">First floor</option>
+      <option value="2">Second floor</option>
+      <option value="3">Third floor</option>
+    </select>
+    <button onclick="loadHeatmap()">Refresh</button>
+    <button onclick="toggleAuto()" id="autoBtn">Auto Off</button>
+  </div>
+
+  <div class="info" id="info">Not loaded</div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="raw" id="raw">Raw JSON will appear here</div>
+
+  <script>
+    let timer = null;
+
+    function getGridId(r, c) {
+      return String.fromCharCode(65 + r) + (c + 1);
+    }
+
+    function getColor(count) {
+      if (count === 0) return "#1f2937";
+      if (count <= 2) return "#166534";
+      if (count <= 5) return "#16a34a";
+      if (count <= 9) return "#ea580c";
+      return "#dc2626";
+    }
+
+    async function loadHeatmap() {
+      const baseUrl = document.getElementById("baseUrl").value.trim();
+      const floorId = document.getElementById("floorId").value;
+      const info = document.getElementById("info");
+      const grid = document.getElementById("grid");
+      const raw = document.getElementById("raw");
+
+      try {
+        const res = await fetch(`${baseUrl}/api/heatmap/${floorId}`);
+        const text = await res.text();
+        const data = JSON.parse(text);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
+        raw.textContent = JSON.stringify(data, null, 2);
+        info.textContent = `Floor ${floorId} | Total: ${data.total || 0}`;
+
+        const counts = data.grids || {};
+        grid.innerHTML = "";
+
+        for (let r = 0; r < 10; r++) {
+          for (let c = 0; c < 10; c++) {
+            const gridId = getGridId(r, c);
+            const count = counts[gridId] || 0;
+
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.style.background = getColor(count);
+            cell.title = `${gridId}: ${count}`;
+
+            const label = document.createElement("div");
+            label.className = "label";
+            label.textContent = gridId;
+
+            const value = document.createElement("div");
+            value.textContent = count > 0 ? count : "";
+
+            cell.appendChild(label);
+            cell.appendChild(value);
+            grid.appendChild(cell);
+          }
+        }
+      } catch (err) {
+        info.textContent = "Алдаа: " + err.message;
+        raw.textContent = String(err);
+      }
+    }
+
+    function toggleAuto() {
+      const btn = document.getElementById("autoBtn");
+
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        btn.textContent = "Auto Off";
+        return;
+      }
+
+      timer = setInterval(loadHeatmap, 3000);
+      btn.textContent = "Auto On";
+      loadHeatmap();
+    }
+
+    loadHeatmap();
+  </script>
+</body>
+</html>
