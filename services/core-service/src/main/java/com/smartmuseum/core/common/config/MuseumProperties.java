@@ -47,7 +47,7 @@ public class MuseumProperties {
         public int     getTimeoutMs()       { return timeoutMs; }
         public void    setTimeoutMs(int v)  { this.timeoutMs = v; }
     }
-
+    
     // ── MQTT ─────────────────────────────────────────────
     public static class Mqtt {
         private String brokerUrl    = "tcp://localhost:1883";

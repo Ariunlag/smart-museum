@@ -6,11 +6,11 @@ spring:
     name: heatmap-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/smartmuseum
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/smartmuseum}
 
 museum:
   mqtt:
-    broker-url: tcp://localhost:1883
+    broker-url: ${MUSEUM_MQTT_BROKER_URL:tcp://localhost:1883}
     client-id: heatmap-service
     heatmap-topic: museum/heatmap/grid
 

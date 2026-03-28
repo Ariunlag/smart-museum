@@ -6,8 +6,13 @@ spring:
     name: core-service
   main:
     web-application-type: servlet
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/smartmuseum
 
 museum:
+  space-id: smart-museum-chicago   # Topic namespace
+
   websocket:
     path: /ws
 
@@ -33,4 +38,12 @@ museum:
   mqtt:
     broker-url: tcp://localhost:1883
     client-id: core-service
-    heatmap-topic: museum/heatmap/grid
+    # Museum-specific topic naming
+    topics:
+      heatmap: "${museum.space-id}/heatmap/grid"
+      registry-register: "${museum.space-id}/registry/register"
+      registry-heartbeat: "${museum.space-id}/registry/heartbeat"
+
+  registry:
+    heartbeat-timeout-ms: 60000   # 60 секундын дотор heartbeat ирэхгүй бол OFFLINE
+    check-interval-ms: 15000      # 15 секунд тутам шалгана

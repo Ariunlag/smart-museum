@@ -1,18 +1,16 @@
-version: '3.8'
-
 services:
 
-  # ── Qdrant (vector DB) ────────────────────────────────
+  # ── Infrastructure ────────────────────────────────────
+
   qdrant:
     image: qdrant/qdrant:v1.9.0
     container_name: qdrant
     ports:
-      - "6333:6333"   # REST (browser-с шалгах)
-      - "6334:6334"   # gRPC (Java client ашиглана)
+      - "6333:6333"
+      - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
 
-  # ── MongoDB ───────────────────────────────────────────
   mongodb:
     image: mongo:7.0
     container_name: mongodb
@@ -21,7 +19,6 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  # ── Mosquitto (MQTT broker) ───────────────────────────
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: mosquitto
@@ -29,6 +26,64 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # ── Spring Services ───────────────────────────────────
+
+  positioning-service:
+    build: ./services/positioning-service
+    container_name: positioning-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/smartmuseum
+      - QDRANT_BASE_URL=http://qdrant:6333
+      - REGISTRY_MQTT_BROKER_URL=tcp://mosquitto:1883
+    depends_on:
+      - qdrant
+      - mongodb
+      - mosquitto
+
+  artinfo-service:
+    build: ./services/artinfo-service
+    container_name: artinfo-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/smartmuseum
+      - REGISTRY_MQTT_BROKER_URL=tcp://mosquitto:1883
+    depends_on:
+      - mongodb
+      - mosquitto
+
+  heatmap-service:
+    build: ./services/heatmap-service
+    container_name: heatmap-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/smartmuseum
+      - MUSEUM_MQTT_BROKER_URL=tcp://mosquitto:1883
+    depends_on:
+      - mongodb
+      - mosquitto
+
+  core-service:
+    build: ./services/core-service
+    container_name: core-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/smartmuseum
+      - MUSEUM_MQTT_BROKER_URL=tcp://mosquitto:1883
+      - MUSEUM_SERVICES_POSITIONING_BASE_URL=http://positioning-service:8081
+      - MUSEUM_SERVICES_ARTINFO_BASE_URL=http://artinfo-service:8082
+      - MUSEUM_SERVICES_HEATMAP_BASE_URL=http://heatmap-service:8083
+    depends_on:
+      - mongodb
+      - mosquitto
+      - positioning-service
+      - artinfo-service
+      - heatmap-service
 
 volumes:
   qdrant_data:

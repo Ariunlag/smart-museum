@@ -30,7 +30,16 @@ museum:
     nearby-range: 2     # хэдэн grid зай дотор art хайх
     max-results: 2      # хамгийн ойрын хэдэн art явуулах
 
-qdrant:
-  host: localhost
-  port: 6334
-  collection: fingerprints
+service:
+  enabled: true
+  id: positioning-service
+  name: "Museum Positioning Service"
+  url: http://localhost:8081
+  version: 1.0.0
+  heartbeat-interval-ms: 30000
+
+registry:
+  mqtt:
+    broker-url: tcp://localhost:1883
+    register-topic: smart-museum-chicago/registry/register
+    heartbeat-topic: smart-museum-chicago/registry/heartbeat
