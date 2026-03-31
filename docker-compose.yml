@@ -63,6 +63,7 @@ services:
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/smartmuseum
       - MUSEUM_MQTT_BROKER_URL=tcp://mosquitto:1883
+      - REGISTRY_MQTT_BROKER_URL=tcp://mosquitto:1883
     depends_on:
       - mongodb
       - mosquitto

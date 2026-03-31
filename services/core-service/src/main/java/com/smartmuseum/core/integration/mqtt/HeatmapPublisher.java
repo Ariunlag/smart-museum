@@ -33,23 +33,29 @@ public class HeatmapPublisher {
      * prevGridId → Heatmap -1 хийнэ (null бол анхны байрлал)
      * gridId     → Heatmap +1 хийнэ
      */
-    public void publish(String gridId, int floorId, String prevGridId) {
+    public void publish(String gridId, int floorId, String prevGridId, Integer prevFloorId) {
         try {
             Map<String, Object> payload = new HashMap<>();
             payload.put("gridId",    gridId);
             payload.put("floorId",   floorId);
             payload.put("prevGridId", prevGridId); // null бол анхны орох
+            payload.put("prevFloorId", prevFloorId);
             payload.put("timestamp", System.currentTimeMillis());
 
             var json = mapper.writeValueAsString(payload);
             var msg  = MessageBuilder
                     .withPayload(json)
-                    .setHeader("mqtt_topic", props.getMqtt().getHeatmapTopic())
+                    .setHeader("mqtt_topic", props.getMqtt().getTopics().getHeatmap())
                     .build();
             mqttOutbound.handleMessage(msg);
-            log.info("Heatmap published: {} → {}", prevGridId, gridId);
+            log.info("Heatmap published: {}:{} → {}:{}",
+                    prevFloorId, prevGridId, floorId, gridId);
         } catch (Exception e) {
             log.warn("Heatmap MQTT publish failed: {}", e.getMessage());
         }
+    }
+
+    public void publishLeave(String prevGridId, int prevFloorId) {
+        publish(null, prevFloorId, prevGridId, prevFloorId);
     }
 }

@@ -14,6 +14,9 @@ import java.util.Map;
  * GET /api/heatmap/{floorId}        → Тухайн давхарын real-time хүний тоо
  * GET /api/heatmap/{floorId}/history → MongoDB-д хадгалагдсан түүх
  */
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/heatmap")
 public class HeatmapController {

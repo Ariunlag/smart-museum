@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Museum — Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', monospace; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    /* Header */
+    .header { background: #1a1d2e; border-bottom: 1px solid #2d3748; padding: 14px 24px;
+               display: flex; align-items: center; justify-content: space-between; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo { font-size: 20px; }
+    .title { font-size: 16px; font-weight: bold; color: #e2e8f0; }
+    .subtitle { font-size: 11px; color: #718096; }
+    .space-badge { background: #2d3748; border: 1px solid #4a5568; border-radius: 20px;
+                   padding: 4px 12px; font-size: 11px; color: #a0aec0; }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 53px); }
+    .sidebar { background: #141722; border-right: 1px solid #2d3748; padding: 16px 0; }
+    .nav-item { padding: 10px 20px; cursor: pointer; font-size: 13px; color: #718096;
+                display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+    .nav-item:hover { background: #1e2235; color: #e2e8f0; }
+    .nav-item.active { background: #1e2235; color: #63b3ed; border-right: 2px solid #63b3ed; }
+    .nav-section { font-size: 10px; color: #4a5568; padding: 12px 20px 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .main { padding: 24px; overflow-y: auto; }
+
+    /* Cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 8px; padding: 16px; }
+    .stat-label { font-size: 11px; color: #718096; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: bold; }
+    .stat-active  { color: #48bb78; }
+    .stat-offline { color: #ed8936; }
+    .stat-disabled{ color: #718096; }
+    .stat-total   { color: #63b3ed; }
+
+    /* Service table */
+    .section-title { font-size: 14px; font-weight: bold; color: #e2e8f0; margin-bottom: 12px;
+                     display: flex; align-items: center; gap: 8px; }
+    .table-wrap { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #141722; padding: 10px 16px; text-align: left; font-size: 11px;
+         color: #718096; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2d3748; }
+    td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #1e2235; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1e2235; }
+
+    /* Status badges */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .badge-active   { background: #1c3829; color: #48bb78; border: 1px solid #276749; }
+    .badge-offline  { background: #3d2b14; color: #ed8936; border: 1px solid #c05621; }
+    .badge-disabled { background: #2d3748; color: #718096; border: 1px solid #4a5568; }
+    .badge-removed  { background: #2d1a1a; color: #fc8181; border: 1px solid #9b2c2c; }
+
+    /* Buttons */
+    .btn { padding: 5px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px; font-family: inherit; }
+    .btn-disable  { background: #2d3748; color: #ed8936; }
+    .btn-enable   { background: #1c3829; color: #48bb78; }
+    .btn-remove   { background: #2d1a1a; color: #fc8181; }
+    .btn-refresh  { background: #1e3a5f; color: #63b3ed; padding: 7px 16px; }
+    .btn:hover { opacity: 0.8; }
+    .btn-group { display: flex; gap: 6px; }
+
+    /* Heatmap */
+    .heatmap-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .floor-btn { background: #2d3748; color: #a0aec0; border: 1px solid #4a5568;
+                 padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .floor-btn.active { background: #1e3a5f; color: #63b3ed; border-color: #2b6cb0; }
+    .heatmap-grid { display: inline-grid; gap: 2px; }
+    .hm-cell { width: 38px; height: 38px; border-radius: 4px; display: flex; align-items: center;
+               justify-content: center; font-size: 11px; font-weight: bold; cursor: default;
+               transition: background 0.4s; border: 1px solid #2d3748; color: #fff; }
+    .legend { display: flex; gap: 10px; align-items: center; font-size: 11px; color: #718096; margin-top: 10px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 3px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; border: 1px solid #4a5568;
+             border-radius: 6px; padding: 10px 16px; font-size: 13px; display: none; z-index: 100; }
+    .toast.show { display: block; }
+
+    .refresh-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .last-refresh { font-size: 11px; color: #4a5568; }
+    input.url-input { background: #141722; border: 1px solid #2d3748; color: #a0aec0;
+                      padding: 5px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="logo">🏛️</span>
+    <div>
+      <div class="title">Smart Museum — Admin Panel</div>
+      <div class="subtitle">Service Registry & Heatmap Dashboard</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="space-badge">📍 smart-museum-chicago</span>
+    <input class="url-input" id="coreUrl" value="http://localhost:8080" style="width:180px">
+    <input class="url-input" id="heatmapUrl" value="http://localhost:8083" style="width:180px">
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">Museum</div>
+    <div class="nav-item active" onclick="showPage('services')">🔌 Service Registry</div>
+    <div class="nav-item" onclick="showPage('heatmap')">🔥 Heatmap</div>
+    <div class="nav-section">Monitor</div>
+    <div class="nav-item" onclick="showPage('logs')">📋 Activity Log</div>
+  </div>
+
+  <div class="main">
+
+    <!-- Services Page -->
+    <div id="page-services">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-label">ACTIVE</div><div class="stat-value stat-active" id="cntActive">—</div></div>
+        <div class="stat-card"><div class="stat-label">OFFLINE</div><div class="stat-value stat-offline" id="cntOffline">—</div></div>
+        <div class="stat-card"><div class="stat-label">DISABLED</div><div class="stat-value stat-disabled" id="cntDisabled">—</div></div>
+        <div class="stat-card"><div class="stat-label">TOTAL</div><div class="stat-value stat-total" id="cntTotal">—</div></div>
+      </div>
+
+      <div class="refresh-row">
+        <div class="section-title">🔌 Museum Services</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="last-refresh" id="lastRefresh">—</span>
+          <button class="btn btn-refresh" onclick="loadServices()">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Status</th>
+              <th>URL</th>
+              <th>Version</th>
+              <th>Last Heartbeat</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="serviceTable"><tr><td colspan="6" style="color:#4a5568;text-align:center">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Heatmap Page -->
+    <div id="page-heatmap" style="display:none">
+      <div class="refresh-row">
+        <div class="section-title">🔥 Real-time Visitor Heatmap</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-refresh" onclick="loadHeatmap()">🔄 Refresh</button>
+          <button class="btn btn-enable" id="autoBtn" onclick="toggleAuto()">▶ Auto (3s)</button>
+        </div>
+      </div>
+      <div class="heatmap-controls">
+        <div id="floorBtns"></div>
+        <span id="heatmapMeta" style="font-size:12px;color:#718096"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-box" style="background:#1a1a2e;border:1px solid #2d3748"></div><span>0</span>
+        <div class="legend-box" style="background:#1c3829"></div><span>1–2</span>
+        <div class="legend-box" style="background:#276749"></div><span>3–5</span>
+        <div class="legend-box" style="background:#c05621"></div><span>6–9</span>
+        <div class="legend-box" style="background:#9b2c2c"></div><span>10+ 🚨</span>
+      </div>
+    </div>
+
+    <!-- Logs Page -->
+    <div id="page-logs" style="display:none">
+      <div class="section-title">📋 Activity Log</div>
+      <div class="table-wrap" style="height:400px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Time</th><th>Event</th><th>Service</th><th>Detail</th></tr></thead>
+          <tbody id="logTable"><tr><td colspan="4" style="color:#4a5568;text-align:center">No logs yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentFloor = 1, floors = 3, rows = 10, cols = 10;
+  let autoTimer = null, logs = [];
+
+  // ── Navigation ───────────────────────────────────────
+  function showPage(name) {
+    ['services','heatmap','logs'].forEach(p => {
+      document.getElementById('page-' + p).style.display = p === name ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-item').forEach((el, i) => {
+      el.classList.toggle('active', ['services','heatmap','logs'][i] === name);
+    });
+    if (name === 'heatmap') loadHeatmap();
+    if (name === 'services') loadServices();
+  }
+
+  // ── Services ─────────────────────────────────────────
+  async function loadServices() {
+    const url = document.getElementById('coreUrl').value;
+    try {
+      const res  = await fetch(`${url}/admin/services`);
+      const data = await res.json();
+      renderServices(data);
+      document.getElementById('lastRefresh').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      document.getElementById('serviceTable').innerHTML =
+        `<tr><td colspan="6" style="color:#fc8181;text-align:center">❌ Cannot connect to Core (${url})</td></tr>`;
+    }
+  }
+
+  function renderServices(data) {
+    const active   = data.filter(s => s.status === 'ACTIVE').length;
+    const offline  = data.filter(s => s.status === 'OFFLINE').length;
+    const disabled = data.filter(s => s.status === 'DISABLED').length;
+    document.getElementById('cntActive').textContent   = active;
+    document.getElementById('cntOffline').textContent  = offline;
+    document.getElementById('cntDisabled').textContent = disabled;
+    document.getElementById('cntTotal').textContent    = data.length;
+
+    const tbody = document.getElementById('serviceTable');
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:#4a5568;text-align:center">No services registered</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(s => `
+      <tr>
+        <td>
+          <div style="font-weight:bold;color:#e2e8f0">${s.serviceName || s.serviceId}</div>
+          <div style="font-size:11px;color:#718096">${s.serviceId}</div>
+        </td>
+        <td><span class="badge badge-${s.status.toLowerCase()}">${s.status}</span></td>
+        <td style="font-size:12px;color:#a0aec0">${s.serviceUrl || '—'}</td>
+        <td style="font-size:12px;color:#718096">${s.version || '—'}</td>
+        <td style="font-size:12px;color:#718096">${s.lastHeartbeatAt ? timeAgo(s.lastHeartbeatAt) : '—'}</td>
+        <td>
+          <div class="btn-group">
+            ${s.status === 'ACTIVE' || s.status === 'OFFLINE'
+              ? `<button class="btn btn-disable" onclick="disableService('${s.serviceId}')">Disable</button>`
+              : ''}
+            ${s.status === 'DISABLED'
+              ? `<button class="btn btn-enable" onclick="enableService('${s.serviceId}')">Enable</button>`
+              : ''}
+            ${s.status !== 'REMOVED'
+              ? `<button class="btn btn-remove" onclick="removeService('${s.serviceId}')">Remove</button>`
+              : '<span style="color:#4a5568;font-size:12px">Removed</span>'}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function disableService(id) {
+    const url = document.getElementById('coreUrl').value;
+    await fetch(`${url}/admin/services/${id}/disable`, { method: 'PATCH' });
+    addLog('DISABLED', id, 'Admin action');
+    showToast(`⏸ ${id} disabled`);
+    loadServices();
+  }
+
+  async function enableService(id) {
+    const url = document.getElementById('coreUrl').value;
+    await fetch(`${url}/admin/services/${id}/enable`, { method: 'PATCH' });
+    addLog('ENABLED', id, 'Admin action');
+    showToast(`▶ ${id} enabled`);
+    loadServices();
+  }
+
+  async function removeService(id) {
+    if (!confirm(`Remove "${id}"? This will soft-delete the service.`)) return;
+    const url = document.getElementById('coreUrl').value;
+    await fetch(`${url}/admin/services/${id}`, { method: 'DELETE' });
+    addLog('REMOVED', id, 'Admin action');
+    showToast(`🗑 ${id} removed`);
+    loadServices();
+  }
+
+  // ── Heatmap ──────────────────────────────────────────
+  function initFloorBtns() {
+    const div = document.getElementById('floorBtns');
+    div.innerHTML = '';
+    for (let f = 1; f <= floors; f++) {
+      const b = document.createElement('button');
+      b.className = 'floor-btn' + (f === currentFloor ? ' active' : '');
+      b.textContent = `Floor ${f}`;
+      b.onclick = () => { currentFloor = f; initFloorBtns(); loadHeatmap(); };
+      div.appendChild(b);
+    }
+  }
+  initFloorBtns();
+
+  function hmColor(n) {
+    if (n === 0) return '#1a1a2e';
+    if (n <= 2)  return '#1c3829';
+    if (n <= 5)  return '#276749';
+    if (n <= 9)  return '#c05621';
+    return '#9b2c2c';
+  }
+
+  async function loadHeatmap() {
+    const url = document.getElementById('heatmapUrl').value;
+    try {
+      const res  = await fetch(`${url}/api/heatmap/${currentFloor}`);
+      const data = await res.json();
+      const grid = document.getElementById('heatmapGrid');
+      grid.style.gridTemplateColumns = `repeat(${cols}, 38px)`;
+      grid.innerHTML = '';
+
+      const grids = data.grids || {};
+      document.getElementById('heatmapMeta').textContent =
+        `Floor ${currentFloor} · Total: ${data.total || 0} visitors · ${new Date().toLocaleTimeString()}`;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const gId   = String.fromCharCode(65 + r) + (c + 1);
+          const count = grids[gId] || 0;
+          const cell  = document.createElement('div');
+          cell.className = 'hm-cell';
+          cell.style.background = hmColor(count);
+          cell.title = `${gId}: ${count} visitors`;
+          cell.textContent = count >= 10 ? '🚨' : (count > 0 ? count : '');
+          grid.appendChild(cell);
+        }
+      }
+    } catch (e) {
+      document.getElementById('heatmapMeta').textContent = '❌ Cannot connect to Heatmap service';
+    }
+  }
+
+  function toggleAuto() {
+    const btn = document.getElementById('autoBtn');
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      btn.textContent = '▶ Auto (3s)';
+      btn.className = 'btn btn-enable';
+    } else {
+      autoTimer = setInterval(loadHeatmap, 3000);
+      btn.textContent = '⏹ Stop Auto';
+      btn.className = 'btn btn-disable';
+      loadHeatmap();
+    }
+  }
+
+  // ── Logs ─────────────────────────────────────────────
+  function addLog(event, service, detail) {
+    logs.unshift({ time: new Date().toLocaleTimeString(), event, service, detail });
+    if (logs.length > 50) logs.pop();
+    const tbody = document.getElementById('logTable');
+    tbody.innerHTML = logs.map(l => `
+      <tr>
+        <td style="color:#718096;font-size:12px">${l.time}</td>
+        <td><span class="badge badge-${l.event === 'ENABLED' ? 'active' : l.event === 'DISABLED' ? 'disabled' : 'removed'}">${l.event}</span></td>
+        <td style="font-size:12px">${l.service}</td>
+        <td style="font-size:12px;color:#718096">${l.detail}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Utils ─────────────────────────────────────────────
+  function timeAgo(ts) {
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 60)   return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    return `${Math.floor(diff/3600)}h ago`;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Init
+  loadServices();
+</script>
+</body>
+</html>

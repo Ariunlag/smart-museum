@@ -13,3 +13,17 @@ museum:
     nearby-range: 2
     max-results: 2
     seed-count: 100
+
+service:
+  enabled: true
+  id: artinfo-service
+  name: "Museum ArtInfo Service"
+  url: http://artinfo-service:8082
+  version: 1.0.0
+  heartbeat-interval-ms: 30000
+
+registry:
+  mqtt:
+    broker-url: ${REGISTRY_MQTT_BROKER_URL:tcp://localhost:1883}
+    register-topic: smart-museum-chicago/registry/register
+    heartbeat-topic: smart-museum-chicago/registry/heartbeat

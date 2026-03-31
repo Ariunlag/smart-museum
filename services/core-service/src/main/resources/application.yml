@@ -15,6 +15,8 @@ museum:
 
   websocket:
     path: /ws
+    inactivity-timeout-ms: 180000
+    cleanup-interval-ms: 30000
 
   services:
     positioning:

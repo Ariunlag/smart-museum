@@ -8,6 +8,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
 
+import com.smartmuseum.core.integration.artinfo.http.dto.ArtByIdResult;
+
 @Component
 public class ArtInfoHttpClient implements ArtInfoClient {
 
@@ -29,6 +31,17 @@ public class ArtInfoHttpClient implements ArtInfoClient {
                               .build())
                 .retrieve()
                 .bodyToMono(ArtInfoResult.class)
+                .timeout(Duration.ofMillis(a.getTimeoutMs()))
+                .block();
+    }
+
+    @Override
+    public ArtByIdResult findById(String artId) {
+        var a = props.getServices().getArtinfo();
+        return webClient.get()
+                .uri(a.getBaseUrl() + "/internal/art/" + artId)
+                .retrieve()
+                .bodyToMono(ArtByIdResult.class)
                 .timeout(Duration.ofMillis(a.getTimeoutMs()))
                 .block();
     }

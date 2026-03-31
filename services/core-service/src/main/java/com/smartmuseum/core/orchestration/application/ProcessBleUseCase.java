@@ -10,6 +10,8 @@ import com.smartmuseum.core.integration.mqtt.HeatmapPublisher;
 import com.smartmuseum.core.integration.positioning.http.dto.PositioningResult;
 import com.smartmuseum.core.orchestration.port.ArtInfoClient;
 import com.smartmuseum.core.orchestration.port.PositioningClient;
+import com.smartmuseum.core.registry.RegistryService;
+import com.smartmuseum.core.registry.domain.ServiceRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,34 +30,43 @@ public class ProcessBleUseCase {
     private final DeviceWebSocketHandler wsHandler;
     private final SessionRegistry        sessionRegistry;
     private final MuseumProperties       props;
+    private final RegistryService        registryService;
 
     public ProcessBleUseCase(PositioningClient positioningClient,
                              ArtInfoClient artInfoClient,
                              HeatmapPublisher heatmapPublisher,
                              DeviceWebSocketHandler wsHandler,
                              SessionRegistry sessionRegistry,
-                             MuseumProperties props) {
+                             MuseumProperties props,
+                             RegistryService registryService) {
         this.positioningClient = positioningClient;
         this.artInfoClient     = artInfoClient;
         this.heatmapPublisher  = heatmapPublisher;
         this.wsHandler         = wsHandler;
         this.sessionRegistry   = sessionRegistry;
         this.props             = props;
+        this.registryService   = registryService;
     }
 
     public void handle(BleIngestRequest req) {
 
-        // 1. Positioning → gridId, floorId, x, y
+        // 1. Positioning enabled + ACTIVE шалгана
         if (!props.getServices().getPositioning().isEnabled()) {
-            log.warn("Positioning service disabled, skipping");
+            log.warn("Positioning disabled in config, skipping");
             return;
         }
+        if (!registryService.isServiceActive("positioning-service")) {
+            log.warn("Positioning service is not ACTIVE in registry, skipping");
+            return;
+        }
+
         PositioningResult pos = positioningClient.locate(req);
         log.info("Position resolved: floor={} grid={}", pos.floorId(), pos.gridId());
 
-        // 2. ArtInfo → ойролцоох art (optional)
+        // 2. ArtInfo (optional — disabled бол хоосон буцаана)
         ArtInfoResult art;
-        if (props.getServices().getArtinfo().isEnabled()) {
+        if (props.getServices().getArtinfo().isEnabled()
+                && registryService.isServiceActive("artinfo-service")) {
             try {
                 art = artInfoClient.findNearest(pos.gridId(), pos.floorId());
                 log.info("Arts found: {}", art.arts().size());
@@ -64,6 +75,7 @@ public class ProcessBleUseCase {
                 art = new ArtInfoResult(List.of());
             }
         } else {
+            log.info("ArtInfo skipped (disabled or not active)");
             art = new ArtInfoResult(List.of());
         }
 
@@ -81,14 +93,18 @@ public class ProcessBleUseCase {
                 )
         );
 
-        // 4. Heatmap → байрлал өөрчлөгдсөн бол MQTT publish
-        if (props.getServices().getHeatmap().isEnabled()) {
-            boolean locationChanged = sessionRegistry.hasLocationChanged(
+                sessionRegistry.touch(req.deviceId());
+
+        // 4. Heatmap MQTT (optional)
+        if (props.getServices().getHeatmap().isEnabled()
+                && registryService.isServiceActive("heatmap-service")) {
+            boolean changed = sessionRegistry.hasLocationChanged(
                     req.deviceId(), pos.gridId(), pos.floorId()
             );
-            if (locationChanged) {
+            if (changed) {
                 String prevGridId = sessionRegistry.getLastGridId(req.deviceId());
-                heatmapPublisher.publish(pos.gridId(), pos.floorId(), prevGridId);
+                Integer prevFloorId = sessionRegistry.getLastFloorId(req.deviceId());
+                heatmapPublisher.publish(pos.gridId(), pos.floorId(), prevGridId, prevFloorId);
                 sessionRegistry.updateLocation(req.deviceId(), pos.gridId(), pos.floorId());
             }
         }

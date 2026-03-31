@@ -46,6 +46,12 @@
       <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
 
+    <!-- MongoDB (Service Registry) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
+
     <!-- MQTT — Heatmap publish -->
     <dependency>
       <groupId>org.springframework.integration</groupId>

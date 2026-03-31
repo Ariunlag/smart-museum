@@ -33,10 +33,11 @@ public class HeatmapService {
      * gridId    → +1 (шинэ байрлал)
      * prevGridId → -1 (өмнөх байрлал, null бол анхны орох)
      */
-    public void processEvent(String gridId, int floorId, String prevGridId) {
+    public void processEvent(String gridId, int floorId, String prevGridId, Integer prevFloorId) {
         // Өмнөх grid-с гарсан
         if (prevGridId != null) {
-            store.leave(prevGridId, floorId);
+            int fromFloor = prevFloorId != null ? prevFloorId : floorId;
+            store.leave(prevGridId, fromFloor);
         }
         // Шинэ grid-д орсон
         store.enter(gridId, floorId);
@@ -70,6 +71,10 @@ public class HeatmapService {
             String gridId    = parts[1];
 
             var existing = repository.findByGridIdAndFloorId(gridId, floorId);
+            if (count <= 0) {
+                existing.ifPresent(repository::delete);
+                return;
+            }
             GridCount doc = existing.orElse(new GridCount(gridId, floorId));
             doc.setCount(count);
             doc.setUpdatedAt(System.currentTimeMillis());

@@ -34,7 +34,7 @@ public class MqttConfig {
                 factory
         );
         handler.setAsync(true);
-        handler.setDefaultTopic(props.getMqtt().getHeatmapTopic());
+        handler.setDefaultTopic(props.getMqtt().getTopics().getHeatmap());
         return handler;
     }
 }

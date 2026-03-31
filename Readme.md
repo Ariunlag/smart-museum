@@ -1,186 +1,153 @@
-# 🏛️ Smart Indoor Positioning System
+ёүтт# Smart Museum
 
-A microservices-based indoor real-time location system (RTLS) using BLE fingerprinting and Vector Database for approximate nearest neighbor search. Built with Spring Boot 3, Java 21, and Docker.
+Microservice-based indoor positioning and exhibit interaction platform.
 
-> **Novel contribution:** First known application of a Vector Database (Qdrant) for BLE RSSI fingerprint storage and ANN-based indoor positioning — replacing traditional O(n) KNN file-based approaches with scalable O(log n) vector similarity search.
+The system accepts BLE readings and proximity scans (QR/NFC), estimates user location by ANN search in Qdrant, pushes real-time updates over WebSocket, and keeps floor heatmap occupancy via MQTT.
 
----
+## Overview
 
-## 📐 Architecture
+### Services
 
+1. `core-service` (`:8080`)
+   - Public API gateway for BLE and proximity events
+   - WebSocket endpoint for real-time client updates
+   - Orchestrates calls to Positioning and ArtInfo services
+   - Publishes heatmap events to MQTT
+   - Handles device inactivity timeout cleanup
+
+2. `positioning-service` (`:8081`)
+   - Converts BLE RSSI readings to vectors
+   - Detects floor and grid location
+   - Uses Qdrant ANN search
+
+3. `artinfo-service` (`:8082`)
+   - Provides nearest artworks by grid/floor
+   - Provides artwork details by `artId`
+
+4. `heatmap-service` (`:8083`)
+   - Subscribes to MQTT movement events
+   - Maintains in-memory occupancy counts
+   - Persists heatmap snapshots to MongoDB
+   - Removes zero-count records during persist
+
+5. Infrastructure
+   - `qdrant` (`:6333`)
+   - `mongodb` (`:27017`)
+   - `mosquitto` (`:1883`)
+
+### Data flow
+
+1. Device sends BLE to `POST /ble/readings`
+2. Core calls Positioning for grid/floor
+3. Core calls ArtInfo for nearby artworks
+4. Core pushes location update via WebSocket
+5. Core publishes movement event (`prev -> current`) to MQTT
+6. Heatmap service updates occupancy and persists periodically
+
+For QR/NFC:
+
+1. Device sends `POST /proximity/scan`
+2. Core calls ArtInfo `GET /internal/art/{artId}`
+3. Core pushes exact artwork location and updates heatmap movement
+
+## Repository structure
+
+```text
+smart-museum/
+  docker-compose.yml
+  pom.xml
+  Readme.md
+  mosquitto/
+    mosquitto.conf
+  services/
+    core-service/
+    positioning-service/
+    artinfo-service/
+    heatmap-service/
+  simulator/
+    simulate_users.py
+  test/
 ```
-Mobile Device (BLE Scan)
-        │
-        ▼ POST /ble/readings
-  ┌─────────────┐
-  │ Core Service│ :8080
-  └──────┬──────┘
-         │
-    ┌────┴─────┬──────────┐
-    ▼          ▼          ▼
-┌────────┐ ┌────────┐ ┌─────────┐
-│Position│ │ArtInfo │ │Mosquitto│
-│Service │ │Service │ │  MQTT   │
-│ :8081  │ │ :8082  │ └────┬────┘
-└───┬────┘ └───┬────┘      │
-    │          │       ┌───▼─────┐
-  Qdrant    MongoDB   │ Heatmap │
-            (arts)    │ Service │
-                      │  :8083  │
-                      └─────────┘
-        │
-        ▼ WebSocket
-  Mobile Device
-  { floorId, x, y, arts[] }
-```
 
----
-
-## 🚀 Quick Start
+## Quick start
 
 ### Prerequisites
-- Docker Desktop
-- Java 21
-- Maven 3.9+
 
-### 1. Start Infrastructure
+1. Docker Desktop
+2. Java 21
+3. Maven 3.9+
+4. Python 3.13+ (for simulator)
+
+### Run everything with Docker
+
 ```bash
-docker compose up -d
+docker compose up --build -d
 ```
 
-### 2. Start Services
+### Build from source manually
+
 ```bash
-# Terminal 1
-cd services/positioning-service && mvn spring-boot:run
-
-# Terminal 2
-cd services/artinfo-service && mvn spring-boot:run
-
-# Terminal 3
-cd services/heatmap-service && mvn spring-boot:run
-
-# Terminal 4
-cd services/core-service && mvn spring-boot:run
+mvn clean package -DskipTests
+docker compose up --build -d
 ```
 
-### 3. Test
+### Check running containers
+
 ```bash
-# Send BLE readings
-curl -X POST http://localhost:8080/ble/readings \
-  -H "Content-Type: application/json" \
-  -d '{
-    "deviceId": "phone-1",
-    "timestamp": 1700000000000,
-    "readings": [
-      { "beaconId": "floor-beacon-f1", "rssi": -65 },
-      { "beaconId": "beacon-3", "rssi": -72 },
-      { "beaconId": "beacon-7", "rssi": -58 }
-    ]
-  }'
+docker ps
 ```
 
-```javascript
-// WebSocket (Browser Console)
-const ws = new WebSocket("ws://localhost:8080/ws?deviceId=phone-1");
-ws.onmessage = (e) => console.log(JSON.parse(e.data));
+## API reference
+
+### Core service (`http://localhost:8080`)
+
+1. `POST /ble/readings`
+   - Accepts BLE readings from client device
+   - Returns `202 Accepted`
+
+Request:
+
+```json
+{
+  "deviceId": "phone-1",
+  "timestamp": 1700000000000,
+  "readings": [
+    { "beaconId": "floor-beacon-f1", "rssi": -65 },
+    { "beaconId": "beacon-3", "rssi": -72 },
+    { "beaconId": "beacon-7", "rssi": -58 }
+  ]
+}
 ```
 
----
+2. `POST /proximity/scan`
+   - Accepts QR/NFC scan with `artId`
+   - Returns `202 Accepted`
 
-## 🗂️ Project Structure
+Request:
 
-```
-smart-museum/
-├── docker-compose.yml
-├── mosquitto/
-│   └── mosquitto.conf
-├── pom.xml                          # Parent POM
-└── services/
-    ├── core-service/                # :8080 — Gateway, WebSocket, MQTT publish
-    ├── positioning-service/         # :8081 — BLE → Grid, Qdrant ANN
-    ├── artinfo-service/             # :8082 — MongoDB, nearest art
-    └── heatmap-service/             # :8083 — MQTT subscribe, presence tracking
+```json
+{
+  "deviceId": "phone-1",
+  "artId": "69a744a1169fd98c914457c4",
+  "source": "QR"
+}
 ```
 
----
+3. `GET /services`
+   - Returns active services from registry
 
-## ⚙️ Configuration
+4. `GET /admin/services`
+   - Returns all registry entries
 
-All system parameters are externalized to `application.yml` — no code changes required:
+5. `PATCH /admin/services/{serviceId}/disable?adminId=admin`
+6. `PATCH /admin/services/{serviceId}/enable`
+7. `DELETE /admin/services/{serviceId}?adminId=admin`
 
-```yaml
-# positioning-service/src/main/resources/application.yml
-museum:
-  building:
-    floors: 3              # Number of floors
-    grid-rows: 10          # Grid rows
-    grid-cols: 10          # Grid columns
-    cell-size-meters: 2    # Cell size in meters
+8. `WS /ws?deviceId=phone-1`
+   - Real-time push channel
 
-  beacons:
-    total: 20              # Total beacon count
-    default-rssi: -100     # RSSI for undetected beacons
-    floor-beacons:
-      - id: "floor-beacon-f1"
-        floor: 1
+Location update sample:
 
-  floor:
-    strategy: beacon       # beacon | manual | qr
-
-  art:
-    nearby-range: 2        # Search radius in grid cells
-    max-results: 2         # Max arts to return
-```
-
----
-
-## 🔬 Algorithm
-
-### BLE Fingerprinting Pipeline
-
-```
-1. Floor Detection
-   BLE signals → floor beacon ID → floorId
-   Strategy Pattern: beacon (now) → QR, manual (extensible)
-
-2. Vector Construction
-   20 beacons → float[20] vector
-   Missing beacon RSSI = -100 dBm (default)
-   Normalize: (rssi + 100) / 100 → [0.0 .. 1.0]
-
-3. ANN Search (Qdrant)
-   Filter: floorId = detected floor
-   Similarity: Cosine distance
-   Returns: gridId + confidence score
-
-4. Grid → Coordinates
-   "B3" → x = 2, y = 1
-```
-
-### Heatmap Logic
-
-```
-User enters grid C3 (was at B2):
-  MQTT publish → { gridId: "C3", prevGridId: "B2", floorId: 1 }
-  Heatmap: B2 count -1, C3 count +1
-
-User disconnects:
-  MQTT publish → { gridId: null, prevGridId: "C3" }
-  Heatmap: C3 count -1
-```
-
----
-
-## 🌐 API Reference
-
-### Core Service
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/ble/readings` | Submit BLE scan readings |
-| WS | `/ws?deviceId=xxx` | WebSocket connection |
-
-**WebSocket Response:**
 ```json
 {
   "type": "location_update",
@@ -191,7 +158,7 @@ User disconnects:
     "y": 3,
     "arts": [
       {
-        "artId": "...",
+        "artId": "69a744a1169fd98c914457c4",
         "title": "Starry Night",
         "artist": "Vincent van Gogh",
         "description": "..."
@@ -201,78 +168,145 @@ User disconnects:
 }
 ```
 
-### Positioning Service
+### Positioning service (`http://localhost:8081`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/internal/positioning/readings` | Locate device |
+1. `POST /internal/positioning/readings`
+   - Internal endpoint used by core-service
+   - Returns grid/floor/coordinates/confidence
 
-### ArtInfo Service
+### ArtInfo service (`http://localhost:8082`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/internal/art/nearest?gridId=B3&floorId=1` | Find nearest arts |
+1. `GET /internal/art/nearest?gridId=B3&floorId=1`
+2. `GET /internal/art/{artId}`
+3. `GET /internal/art`
 
-### Heatmap Service
+### Heatmap service (`http://localhost:8083`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/heatmap/{floorId}` | Get heatmap for floor |
+1. `GET /api/heatmap/{floorId}`
+   - Real-time in-memory map for floor
+2. `GET /api/heatmap/{floorId}/history`
+   - Persisted MongoDB records for floor
 
----
+## Simulator
 
-## 🏗️ Tech Stack
+Path: `simulator/simulate_users.py`
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Spring Boot 3.5, Java 21, Maven |
-| Vector DB | Qdrant 1.9 (REST API) |
-| Document DB | MongoDB 7.0 |
-| Messaging | Eclipse Mosquitto 2.0 (MQTT) |
-| Real-time | Spring WebSocket |
-| Infrastructure | Docker, Docker Compose |
-| Architecture | Microservices, Hexagonal (Ports & Adapters) |
+### Install dependencies
 
----
+```bash
+cd simulator
+pip install requests websocket-client
+```
 
-## 🔭 Novelty
+If using `uv` Python, use a local virtual environment:
 
-A systematic review of 1,600+ indoor positioning studies published between 2020–2024 (PRISMA methodology) found **no prior use of Vector Databases for BLE fingerprint storage and retrieval**. Existing approaches store fingerprints in flat files or relational databases and apply O(n) KNN search.
+```bash
+cd simulator
+uv venv
+uv pip install requests websocket-client
+.venv\Scripts\activate
+python simulate_users.py
+```
 
-This system introduces:
-- **Vector DB-backed fingerprinting** — O(log n) ANN search via Qdrant Cosine similarity
-- **Dynamic fingerprint updates** — upsert without retraining
-- **Microservice architecture** — independent scaling per service
-- **Strategy Pattern floor detection** — extensible without core changes
+### Run
 
----
+```bash
+cd simulator
+python simulate_users.py
+```
 
-## 🌍 Public Safety Applications
+It simulates multiple users sending:
 
-The domain-agnostic architecture supports extension to:
+1. BLE readings
+2. QR scans
+3. NFC scans
+4. WebSocket listening for updates
 
-- 🏥 **Hospital** — Patient & staff real-time tracking
-- 🚒 **Emergency Response** — Rescue team positioning
-- 🏭 **Industrial** — Worker safety monitoring
-- 🏫 **Schools** — Evacuation route guidance
-- ✈️ **Airports** — Crowd flow management
-- 🏟️ **Stadiums** — Panic & anomaly detection
+## Heatmap behavior and anti-accumulation logic
 
----
+### Movement updates
 
-## 📋 Roadmap
+For each location change, core publishes both previous and current location:
 
-- [x] Core Service — BLE ingest, WebSocket, MQTT publish
-- [x] Positioning Service — Floor detection, Vector builder, Qdrant ANN
-- [x] ArtInfo Service — MongoDB, nearest art search
-- [ ] Heatmap Service — Real-time presence, Admin API
-- [ ] Docker — Full containerization
-- [ ] JWT Security — Device authentication
-- [ ] Accuracy benchmarking — Real-world testing
-- [ ] Academic publication
+```json
+{
+  "gridId": "C3",
+  "floorId": 2,
+  "prevGridId": "A7",
+  "prevFloorId": 1,
+  "timestamp": 1700000000000
+}
+```
 
----
+Heatmap service decrements previous cell and increments new cell.
 
-## 📄 License
+### User leaving museum
 
-MIT License
+Handled in three ways:
+
+1. WebSocket disconnect
+   - Core publishes leave event for last known cell
+
+2. Inactivity timeout (no BLE/proximity for configured time)
+   - Core scheduled cleanup removes stale device
+   - Core publishes leave event automatically
+
+3. Device reconnect
+   - Last location state is preserved correctly to avoid double counting
+
+### MongoDB cleanup
+
+Heatmap persistence now deletes records with `count <= 0`, preventing stale growth across repeated simulations.
+
+## Key configuration
+
+### Core service (`services/core-service/src/main/resources/application.yml`)
+
+```yaml
+museum:
+  websocket:
+    path: /ws
+    inactivity-timeout-ms: 180000
+    cleanup-interval-ms: 30000
+```
+
+### Heatmap service (`services/heatmap-service/src/main/resources/application.yml`)
+
+```yaml
+museum:
+  heatmap:
+    persist-interval-minutes: 1
+    crowd-threshold: 10
+```
+
+## Troubleshooting
+
+1. BLE/QR/NFC accepted but no WebSocket updates
+   - Verify `core-service` is running on `8080`
+   - Check WebSocket path `/ws`
+
+2. Proximity requests return errors
+   - Verify `artinfo-service` is running on `8082`
+   - Confirm `GET /internal/art/{artId}` works
+
+3. Heatmap totals look wrong
+   - Wait one persist interval (default 1 minute) for MongoDB cleanup
+   - Check core logs for `Heatmap published` transitions
+   - Check inactivity timeout values
+
+4. Simulator import errors in Python
+   - Ensure the package is installed in the same Python interpreter used to run script
+
+## Technology stack
+
+1. Java 21
+2. Spring Boot 3.5.x
+3. Maven (multi-module)
+4. MongoDB 7
+5. Qdrant 1.9
+6. Eclipse Mosquitto MQTT
+7. Docker and Docker Compose
+
+## License
+
+MIT

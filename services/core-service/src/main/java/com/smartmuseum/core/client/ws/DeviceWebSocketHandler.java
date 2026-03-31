@@ -2,6 +2,7 @@ package com.smartmuseum.core.client.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartmuseum.core.client.ws.dto.PushMessage;
+import com.smartmuseum.core.integration.mqtt.HeatmapPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -21,11 +22,15 @@ import java.util.Map;
 public class DeviceWebSocketHandler extends TextWebSocketHandler {
 
     private final SessionRegistry registry;
-    private final ObjectMapper     mapper;
+    private final ObjectMapper mapper;
+    private final HeatmapPublisher heatmapPublisher;
 
-    public DeviceWebSocketHandler(SessionRegistry registry, ObjectMapper mapper) {
+    public DeviceWebSocketHandler(SessionRegistry registry,
+                                  ObjectMapper mapper,
+                                  HeatmapPublisher heatmapPublisher) {
         this.registry = registry;
-        this.mapper   = mapper;
+        this.mapper = mapper;
+        this.heatmapPublisher = heatmapPublisher;
     }
 
     // ── Утас холбогдоход ────────────────────────────────
@@ -50,7 +55,14 @@ public class DeviceWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String deviceId = extractDeviceId(session);
-        if (deviceId != null) registry.removeSession(deviceId);
+        if (deviceId == null) {
+            return;
+        }
+
+        SessionRegistry.DeviceState state = registry.removeSession(deviceId);
+        if (state != null && state.lastGridId() != null && state.lastFloorId() >= 0) {
+            heatmapPublisher.publishLeave(state.lastGridId(), state.lastFloorId());
+        }
     }
 
     // ── Утас руу push хийх ──────────────────────────────

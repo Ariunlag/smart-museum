@@ -42,12 +42,14 @@ public class HeatmapSubscriber {
             String gridId    = (String) payload.get("gridId");
             int    floorId   = ((Number) payload.get("floorId")).intValue();
             String prevGridId = (String) payload.get("prevGridId"); // null боломжтой
+            Number prevFloor  = (Number) payload.get("prevFloorId");
+            Integer prevFloorId = prevFloor != null ? prevFloor.intValue() : null;
 
             if (gridId == null) {
                 // Хэрэглэгч disconnect → зөвхөн leave
                 service.processLeave(prevGridId, floorId);
             } else {
-                service.processEvent(gridId, floorId, prevGridId);
+                service.processEvent(gridId, floorId, prevGridId, prevFloorId);
             }
 
         } catch (Exception e) {

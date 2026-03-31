@@ -85,7 +85,16 @@
       </div>
     </div>
     <button class="green" onclick="addBeacon()" style="margin-bottom:6px;width:auto;padding:4px 10px">+ Beacon</button>
-    <button onclick="sendBle()">📡 Signal явуулах</button>
+    <button onclick="sendBle()">📡 BLE Signal явуулах</button>
+
+    <div style="margin-top:10px">
+      <label>Art ID (QR/NFC)</label>
+      <input id="artId" placeholder="MongoDB ObjectId..." style="margin-bottom:4px">
+      <div style="display:flex;gap:6px">
+        <button onclick="sendProximity('QR')" style="background:#2d5a27">📷 QR Scan</button>
+        <button onclick="sendProximity('NFC')" style="background:#1a3a5c">📶 NFC Scan</button>
+      </div>
+    </div>
     <div id="sendStatus" style="margin-top:6px;font-size:11px;color:#808080"></div>
   </div>
 </div>
@@ -168,6 +177,31 @@
     d.className = 'beacon-row';
     d.innerHTML = `<input placeholder="beaconId" style="flex:2"><input placeholder="rssi" value="-70" style="flex:1">`;
     document.getElementById('beacons').appendChild(d);
+  }
+
+  async function sendProximity(source) {
+    const deviceId = document.getElementById('deviceId').value;
+    const coreUrl  = document.getElementById('coreUrl').value;
+    const artId    = document.getElementById('artId').value.trim();
+    if (!artId) {
+      document.getElementById('sendStatus').textContent = '❌ Art ID оруулна уу';
+      return;
+    }
+    try {
+      const res = await fetch(`${coreUrl}/proximity/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, artId, source })
+      });
+      const data = await res.json();
+      const el = document.getElementById('sendStatus');
+      el.textContent = `✅ ${source}: ` + JSON.stringify(data);
+      el.style.color = '#4ec94e';
+    } catch (e) {
+      const el = document.getElementById('sendStatus');
+      el.textContent = '❌ ' + e.message;
+      el.style.color = '#e74c3c';
+    }
   }
 
   async function sendBle() {
