@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * App эхлэхэд нэг удаа ажиллана.
- * MongoDB хоосон бол 100 art үүсгэж хадгална.
- * Grid-үүдээс random 100-г сонгоно — зарим grid хоосон үлдэнэ.
+ * Runs once at application startup.
+ * Seeds 100 artworks when MongoDB is empty.
+ * Selects 100 random grid cells, so some cells may remain empty.
  */
 @Component
 public class ArtSeeder implements ApplicationRunner {
@@ -53,9 +53,9 @@ public class ArtSeeder implements ApplicationRunner {
         }
 
         int count = props.getArt().getSeedCount();
-        int rows  = 10;
-        int cols  = 10;
-        int floors = 3;
+        int rows  = Math.max(1, props.getBuilding().getGridRows());
+        int cols  = Math.max(1, props.getBuilding().getGridCols());
+        int floors = Math.max(1, props.getBuilding().getFloors());
 
         // Grid-үүдийн жагсаалт үүсгэнэ
         List<int[]> allGrids = new ArrayList<>();

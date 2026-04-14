@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Admin dashboard-д зориулсан REST API.
+ * REST API used by the admin dashboard.
  *
- * GET /api/heatmap/{floorId}        → Тухайн давхарын real-time хүний тоо
- * GET /api/heatmap/{floorId}/history → MongoDB-д хадгалагдсан түүх
+ * GET /api/heatmap/{floorId}         -> real-time people count for a floor
+ * GET /api/heatmap/{floorId}/history -> persisted history from MongoDB
  */
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -29,7 +29,7 @@ public class HeatmapController {
         this.repository = repository;
     }
 
-    /** Real-time: memory-с уншина */
+    /** Reads real-time floor data from in-memory store. */
     @GetMapping("/{floorId}")
     public Map<String, Object> getFloorHeatmap(@PathVariable int floorId) {
         var snapshot = store.snapshot();
@@ -49,7 +49,7 @@ public class HeatmapController {
         );
     }
 
-    /** History: MongoDB-с уншина */
+    /** Reads historical floor data from MongoDB. */
     @GetMapping("/{floorId}/history")
     public List<GridCount> getHistory(@PathVariable int floorId) {
         return repository.findByFloorId(floorId);

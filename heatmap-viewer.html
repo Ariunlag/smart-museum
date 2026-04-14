@@ -3,17 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simple Heatmap</title>
+  <title>Smart Site Heatmap</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg-1: #1b2520;
+      --bg-2: #101519;
+      --panel: #152028;
+      --panel-soft: #1b2a33;
+      --border: #2f4654;
+      --text: #edf5f7;
+      --muted: #9fb4be;
+      --accent: #34d399;
+      --shadow: rgba(8, 16, 23, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-      padding: 20px;
+      margin: 0;
+      font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 20% 22%, rgba(52, 211, 153, 0.16), transparent 30%),
+        radial-gradient(circle at 87% 76%, rgba(251, 146, 60, 0.12), transparent 24%),
+        linear-gradient(170deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      padding: 22px;
+      min-height: 100vh;
     }
 
     h2 {
-      margin-bottom: 16px;
+      margin: 0 0 14px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
     }
 
     .toolbar {
@@ -22,45 +46,78 @@
       align-items: center;
       margin-bottom: 16px;
       flex-wrap: wrap;
+      background: rgba(21, 32, 40, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      backdrop-filter: blur(8px);
     }
 
     input, select, button {
       padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #374151;
-      background: #1f2937;
-      color: white;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(18, 27, 34, 0.95);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: rgba(52, 211, 153, 0.7);
+      box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2);
     }
 
     button {
       cursor: pointer;
-      background: #2563eb;
-      border: none;
+      background: rgba(52, 211, 153, 0.16);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: #baf6df;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
+
+    button:hover { opacity: 0.92; transform: translateY(-1px); }
 
     .info {
       margin-bottom: 12px;
-      color: #cbd5e1;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
     }
 
     .grid {
-      display: grid;
+      display: inline-grid;
       grid-template-columns: repeat(10, 50px);
       gap: 4px;
       margin-top: 12px;
+      padding: 10px;
+      background: rgba(10, 17, 22, 0.55);
+      border-radius: 14px;
+      border: 1px solid rgba(47, 70, 84, 0.75);
+      box-shadow: 0 10px 22px var(--shadow);
     }
 
     .cell {
       width: 50px;
       height: 50px;
-      border: 1px solid #374151;
-      border-radius: 6px;
+      border: 1px solid rgba(47, 70, 84, 0.9);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       font-size: 12px;
-      font-weight: bold;
+      font-weight: 700;
+      transition: background 0.2s ease;
+    }
+
+    .cell.outside {
+      background: #091116 !important;
+      border-color: #16242d;
+      color: #465c68;
     }
 
     .label {
@@ -68,31 +125,46 @@
       top: 3px;
       left: 4px;
       font-size: 9px;
-      color: #cbd5e1;
-      font-weight: normal;
+      color: #c6d7de;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 400;
     }
 
     .raw {
       margin-top: 20px;
-      background: #0f172a;
+      background: rgba(18, 27, 34, 0.92);
+      border: 1px solid var(--border);
       padding: 12px;
-      border-radius: 8px;
-      font-family: monospace;
+      border-radius: 12px;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
       white-space: pre-wrap;
+      max-height: 280px;
+      overflow: auto;
+      box-shadow: 0 10px 20px var(--shadow);
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 14px; }
+      h2 { font-size: 22px; }
+      .toolbar { padding: 8px; }
+      input#layoutPath,
+      input#baseUrl,
+      select#floorId {
+        width: 100%;
+      }
+      .grid { width: 100%; overflow-x: auto; display: grid; }
     }
   </style>
 </head>
 <body>
-  <h2>Simple Museum Heatmap</h2>
+  <h2 id="pageTitle">Simple Site Heatmap</h2>
 
   <div class="toolbar">
+    <input id="layoutPath" value="config/smart_museum/layout.yml" title="Layout config path" />
+    <button onclick="loadLayoutConfig(true)">Load Layout</button>
     <input id="baseUrl" value="http://localhost:8083" />
-    <select id="floorId">
-      <option value="1">First floor</option>
-      <option value="2">Second floor</option>
-      <option value="3">Third floor</option>
-    </select>
+    <select id="floorId"></select>
     <button onclick="loadHeatmap()">Refresh</button>
     <button onclick="toggleAuto()" id="autoBtn">Auto Off</button>
   </div>
@@ -103,8 +175,108 @@
 
   <div class="raw" id="raw">Raw JSON will appear here</div>
 
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <script>
     let timer = null;
+    let floors = 3;
+    let rows = 10;
+    let cols = 10;
+    let siteLabel = "site";
+    let shapePolygon = null;
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(location.search);
+      return params.get(name);
+    }
+
+    function applyBrand(siteText) {
+      const s = (siteText || '').toLowerCase();
+      const isUni = s.includes('university');
+      const title = isUni ? 'Smart University Heatmap' : 'Smart Museum Heatmap';
+      document.title = title;
+      document.getElementById('pageTitle').textContent = title;
+    }
+
+    async function detectSiteDefaultsFromCore() {
+      const baseUrl = document.getElementById('baseUrl').value.trim();
+      const coreUrl = baseUrl.replace(':8083', ':8080');
+      try {
+        const res = await fetch(`${coreUrl}/admin/site-config`);
+        if (!res.ok) return;
+        const cfg = await res.json();
+        const spaceId = (cfg.spaceId || cfg.site || '').toLowerCase();
+        if (!getQueryParam('layout')) {
+          document.getElementById('layoutPath').value =
+            spaceId.includes('university') ? 'config/smart_university/layout.yml' : 'config/smart_museum/layout.yml';
+        }
+        applyBrand(spaceId);
+      } catch (err) {
+        // Core unreachable үед default layout хэрэглэнэ.
+      }
+    }
+
+    function buildFloorOptions() {
+      const select = document.getElementById("floorId");
+      const current = Number(select.value || 1);
+      select.innerHTML = "";
+      for (let f = 1; f <= floors; f++) {
+        const option = document.createElement("option");
+        option.value = String(f);
+        option.textContent = `Floor ${f}`;
+        if (f === Math.min(current, floors)) option.selected = true;
+        select.appendChild(option);
+      }
+    }
+
+    async function loadLayoutConfig(showToast) {
+      const path = document.getElementById("layoutPath").value.trim();
+      if (!path) return;
+      try {
+        const res = await fetch(path + (path.includes("?") ? "&" : "?") + "t=" + Date.now());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        const cfg = jsyaml.load(text) || {};
+
+        const b = (cfg.museum && cfg.museum.building) || {};
+        const s = cfg.site || {};
+        const shape = (((cfg.place || {}).shape) || {});
+        floors = Math.max(1, Number(b.floors || floors));
+        rows = Math.max(1, Number(b["grid-rows"] || rows));
+        cols = Math.max(1, Number(b["grid-cols"] || cols));
+        shapePolygon = (shape.type === 'Polygon' && Array.isArray(shape.coordinates) && shape.coordinates.length >= 3)
+          ? normalizeShapeToGrid(shape.coordinates, rows, cols)
+          : null;
+        siteLabel = s.id || s.name || "site";
+        applyBrand(siteLabel);
+        buildFloorOptions();
+        if (showToast) alert(`Layout loaded: ${siteLabel} (${floors}F, ${rows}x${cols})`);
+      } catch (err) {
+        if (showToast) alert("Layout load failed. Using current values.");
+        console.error(err);
+      }
+    }
+
+    function normalizeShapeToGrid(points, targetRows, targetCols) {
+      const parsed = (points || [])
+        .map(p => [Number((p || [])[0]), Number((p || [])[1])])
+        .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+      if (parsed.length < 3) return null;
+
+      const maxX = parsed.reduce((m, p) => Math.max(m, p[0]), 0);
+      const maxY = parsed.reduce((m, p) => Math.max(m, p[1]), 0);
+      if (maxX <= 0 || maxY <= 0) return parsed;
+
+      const scaleX = targetCols / maxX;
+      const scaleY = targetRows / maxY;
+      const needsScale = Math.abs(maxX - targetCols) > 1e-6 || Math.abs(maxY - targetRows) > 1e-6;
+
+      if (!needsScale) return parsed;
+
+      return parsed.map(p => [
+        Math.round((p[0] * scaleX) * 1000) / 1000,
+        Math.round((p[1] * scaleY) * 1000) / 1000
+      ]);
+    }
 
     function getGridId(r, c) {
       return String.fromCharCode(65 + r) + (c + 1);
@@ -116,6 +288,26 @@
       if (count <= 5) return "#16a34a";
       if (count <= 9) return "#ea580c";
       return "#dc2626";
+    }
+
+    function isInsideShape(r, c) {
+      if (!shapePolygon) return true;
+      const x = c + 0.5;
+      const y = r + 0.5;
+      let inside = false;
+      for (let i = 0, j = shapePolygon.length - 1; i < shapePolygon.length; j = i++) {
+        const pi = shapePolygon[i] || [];
+        const pj = shapePolygon[j] || [];
+        const xi = Number(pi[0]);
+        const yi = Number(pi[1]);
+        const xj = Number(pj[0]);
+        const yj = Number(pj[1]);
+        if ([xi, yi, xj, yj].some(Number.isNaN)) continue;
+        const intersects = ((yi > y) !== (yj > y)) &&
+          (x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-9) + xi);
+        if (intersects) inside = !inside;
+      }
+      return inside;
     }
 
     async function loadHeatmap() {
@@ -135,27 +327,33 @@
         }
 
         raw.textContent = JSON.stringify(data, null, 2);
-        info.textContent = `Floor ${floorId} | Total: ${data.total || 0}`;
+        info.textContent = `${siteLabel} | Floor ${floorId} | Grid ${rows}x${cols} | Total: ${data.total || 0}`;
 
         const counts = data.grids || {};
         grid.innerHTML = "";
+        grid.style.gridTemplateColumns = `repeat(${cols}, 50px)`;
 
-        for (let r = 0; r < 10; r++) {
-          for (let c = 0; c < 10; c++) {
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
             const gridId = getGridId(r, c);
+            const inside = isInsideShape(r, c);
             const count = counts[gridId] || 0;
 
             const cell = document.createElement("div");
-            cell.className = "cell";
-            cell.style.background = getColor(count);
-            cell.title = `${gridId}: ${count}`;
+            cell.className = "cell" + (inside ? "" : " outside");
+            if (inside) {
+              cell.style.background = getColor(count);
+              cell.title = `${gridId}: ${count}`;
+            } else {
+              cell.title = `${gridId}: outside shape`;
+            }
 
             const label = document.createElement("div");
             label.className = "label";
             label.textContent = gridId;
 
             const value = document.createElement("div");
-            value.textContent = count > 0 ? count : "";
+            value.textContent = inside && count > 0 ? count : "";
 
             cell.appendChild(label);
             cell.appendChild(value);
@@ -183,7 +381,15 @@
       loadHeatmap();
     }
 
-    loadHeatmap();
+    (async function init() {
+      const layoutFromQuery = getQueryParam('layout');
+      if (layoutFromQuery) {
+        document.getElementById('layoutPath').value = layoutFromQuery;
+      }
+      await detectSiteDefaultsFromCore();
+      await loadLayoutConfig(false);
+      loadHeatmap();
+    })();
   </script>
 </body>
 </html>

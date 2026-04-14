@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: artinfo-service
+  config:
+    import: optional:file:${MUSEUM_LAYOUT_FILE:config/smart_museum/layout.yml}
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/smartmuseum}

@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
 /**
- * WebSocket endpoint тохируулна.
- * Path: application.yml-с авна (museum.websocket.path)
+ * Configures the WebSocket endpoint.
+ * Path is loaded from application.yml (museum.websocket.path).
  */
 @Configuration
 @EnableWebSocket

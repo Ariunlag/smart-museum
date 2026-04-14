@@ -4,24 +4,15 @@ server:
 spring:
   application:
     name: positioning-service
+  config:
+    import: optional:file:${MUSEUM_LAYOUT_FILE:config/smart_museum/layout.yml}
 
 museum:
-  building:
-    floors: 3
-    grid-rows: 10
-    grid-cols: 10
-    cell-size-meters: 2
-
+  # Place-specific values (building, beacon coordinates) are loaded
+  # from external layout file via MUSEUM_LAYOUT_FILE.
+  # Keep safe runtime defaults here only.
   beacons:
-    total: 20
     default-rssi: -100
-    floor-beacons:
-      - id: "floor-beacon-f1"
-        floor: 1
-      - id: "floor-beacon-f2"
-        floor: 2
-      - id: "floor-beacon-f3"
-        floor: 3
 
   floor:
     strategy: beacon    # beacon | manual | qr

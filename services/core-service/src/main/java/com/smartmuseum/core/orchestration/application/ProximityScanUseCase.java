@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * QR / NFC scan-р ирсэн артId-г боловсруулна.
+ * Processes an artId received from a QR/NFC scan.
  *
  * Flow:
- *  1. ArtInfo-с artId-р art + gridId авна
- *  2. WebSocket-р user-д push
- *  3. Heatmap update (байрлал өөрчлөгдсөн бол)
+ *  1. Retrieve art + gridId from ArtInfo by artId
+ *  2. Push the result to the user over WebSocket
+ *  3. Update heatmap when location changes
  */
 import com.smartmuseum.core.registry.RegistryService;
 

@@ -13,12 +13,12 @@ import jakarta.annotation.PostConstruct;
 import java.util.Map;
 
 /**
- * Service бүр энэ class-г ашиглан:
- *   1. Startup-д register publish хийнэ
- *   2. 30 секунд тутам heartbeat publish хийнэ
+ * Used by each service to publish registry messages:
+ *   1. Publish register event on startup
+ *   2. Publish heartbeat every 30 seconds
  *
- * application.yml тохиргоо:
- *   service.enabled=false бол publish хийхгүй
+ * application.yml setting:
+ *   service.enabled=false disables publishing
  */
 @Component
 @EnableScheduling
@@ -79,7 +79,7 @@ public class ServiceRegistrar {
                     "serviceId", serviceId,
                     "timestamp", System.currentTimeMillis()
             );
-            publish(heartbeatTopic, payload);
+            publish(heartbeatTopic + "/" + serviceId, payload);
         } catch (Exception e) {
             log.warn("Heartbeat failed: {}", e.getMessage());
         }

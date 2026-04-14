@@ -1,0 +1,213 @@
+site:
+  id: smart-university
+  name: Smart University Campus
+  main-floor: 2
+
+place:
+  shape:
+    type: Polygon
+    crs: grid
+    coordinates:
+      - [0, 0]
+      - [17, 0]
+      - [17, 5]
+      - [11, 5]
+      - [11, 13]
+      - [0, 13]
+      - [0, 0]
+
+museum:
+  building:
+    floors: 4
+    grid-rows: 14
+    grid-cols: 18
+    cell-size-meters: 2
+    floor-height-meters: 4
+
+  beacons:
+    total: 24
+    default-rssi: -100
+    model:
+      tx-power-db: -60.0
+      path-loss-exponent: 2.4
+      max-range-meters: 17.0
+      reference-distance-meters: 1.0
+      min-rssi: -100
+      max-rssi: -30
+      cutoff-rssi: -85
+    positions:
+      - id: floor-beacon-f1
+        floor: 1
+        x: 1
+        y: 1
+        role: floor-anchor
+        tx-power-db: -55.5
+        path-loss-exponent: 2.0
+        max-range-meters: 24.0
+      - id: floor-beacon-f2
+        floor: 2
+        x: 1
+        y: 1
+        role: floor-anchor
+        tx-power-db: -55.5
+        path-loss-exponent: 2.0
+        max-range-meters: 24.0
+      - id: floor-beacon-f3
+        floor: 3
+        x: 1
+        y: 1
+        role: floor-anchor
+        tx-power-db: -55.5
+        path-loss-exponent: 2.0
+        max-range-meters: 24.0
+      - id: floor-beacon-f4
+        floor: 4
+        x: 1
+        y: 1
+        role: floor-anchor
+        tx-power-db: -55.5
+        path-loss-exponent: 2.0
+        max-range-meters: 24.0
+      - id: beacon-4
+        floor: 1
+        x: 5
+        y: 2
+        tx-power-db: -60.0
+        path-loss-exponent: 2.2
+        max-range-meters: 18.0
+      - id: beacon-5
+        floor: 1
+        x: 10
+        y: 2
+        tx-power-db: -59.0
+        path-loss-exponent: 2.1
+        max-range-meters: 19.0
+      - id: beacon-6
+        floor: 1
+        x: 15
+        y: 2
+        tx-power-db: -61.0
+        path-loss-exponent: 2.4
+        max-range-meters: 16.5
+      - id: beacon-7
+        floor: 1
+        x: 7
+        y: 6
+        tx-power-db: -62.0
+        path-loss-exponent: 2.6
+        max-range-meters: 14.0
+      - id: beacon-8
+        floor: 1
+        x: 13
+        y: 8
+        tx-power-db: -61.5
+        path-loss-exponent: 2.5
+        max-range-meters: 14.5
+      - id: beacon-9
+        floor: 2
+        x: 4
+        y: 2
+        tx-power-db: -60.0
+        path-loss-exponent: 2.2
+        max-range-meters: 18.0
+      - id: beacon-10
+        floor: 2
+        x: 9
+        y: 2
+        tx-power-db: -59.5
+        path-loss-exponent: 2.2
+        max-range-meters: 18.5
+      - id: beacon-11
+        floor: 2
+        x: 14
+        y: 2
+        tx-power-db: -61.0
+        path-loss-exponent: 2.4
+        max-range-meters: 16.0
+      - id: beacon-12
+        floor: 2
+        x: 6
+        y: 7
+        tx-power-db: -62.5
+        path-loss-exponent: 2.7
+        max-range-meters: 13.0
+      - id: beacon-13
+        floor: 2
+        x: 12
+        y: 9
+        tx-power-db: -61.5
+        path-loss-exponent: 2.5
+        max-range-meters: 14.0
+      - id: beacon-14
+        floor: 3
+        x: 3
+        y: 3
+        tx-power-db: -60.5
+        path-loss-exponent: 2.3
+        max-range-meters: 17.0
+      - id: beacon-15
+        floor: 3
+        x: 8
+        y: 3
+        tx-power-db: -59.5
+        path-loss-exponent: 2.2
+        max-range-meters: 18.0
+      - id: beacon-16
+        floor: 3
+        x: 13
+        y: 3
+        tx-power-db: -61.0
+        path-loss-exponent: 2.4
+        max-range-meters: 16.0
+      - id: beacon-17
+        floor: 3
+        x: 6
+        y: 8
+        tx-power-db: -62.0
+        path-loss-exponent: 2.6
+        max-range-meters: 13.5
+      - id: beacon-18
+        floor: 3
+        x: 15
+        y: 10
+        tx-power-db: -62.5
+        path-loss-exponent: 2.8
+        max-range-meters: 12.0
+      - id: beacon-19
+        floor: 4
+        x: 4
+        y: 4
+        tx-power-db: -60.5
+        path-loss-exponent: 2.3
+        max-range-meters: 17.0
+      - id: beacon-20
+        floor: 4
+        x: 9
+        y: 4
+        tx-power-db: -59.5
+        path-loss-exponent: 2.2
+        max-range-meters: 18.0
+      - id: beacon-21
+        floor: 4
+        x: 14
+        y: 4
+        tx-power-db: -61.0
+        path-loss-exponent: 2.4
+        max-range-meters: 16.0
+      - id: beacon-22
+        floor: 4
+        x: 7
+        y: 9
+        tx-power-db: -62.0
+        path-loss-exponent: 2.6
+        max-range-meters: 13.5
+      - id: beacon-23
+        floor: 4
+        x: 16
+        y: 11
+        tx-power-db: -63.0
+        path-loss-exponent: 2.9
+        max-range-meters: 11.5
+
+  floor:
+    strategy: beacon

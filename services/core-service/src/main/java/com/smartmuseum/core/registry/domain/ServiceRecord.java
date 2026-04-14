@@ -5,8 +5,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Museum service-н бүртгэлийн мэдээлэл.
- * MD файлын Registry Data Model-г хэрэгжүүлнэ.
+ * Registry record for a museum microservice.
+ * Implements the registry data model used by the system.
  */
 @Document(collection = "service_registry")
 public class ServiceRecord {

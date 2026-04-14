@@ -105,6 +105,9 @@
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
     <label style="margin:0">Heatmap URL:</label>
     <input id="heatmapUrl" value="http://localhost:8083" style="width:180px;margin:0">
+    <label style="margin:0">Layout:</label>
+    <input id="layoutPath" value="config/smart_museum/layout.yml" style="width:220px;margin:0">
+    <button onclick="loadLayoutConfig(true)" style="width:auto;padding:5px 12px">Load Layout</button>
     <div class="floor-tabs" id="floorTabs"></div>
     <button onclick="loadHeatmap()" style="width:auto;padding:5px 12px">🔄 Refresh</button>
     <button class="green" onclick="toggleAutoRefresh()" id="autoBtn" style="width:auto;padding:5px 12px">▶ Auto</button>
@@ -122,6 +125,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script>
   let ws = null, autoInterval = null, currentFloor = 1, floors = 3, rows = 10, cols = 10;
 
@@ -135,6 +139,33 @@
       b.textContent = f + '-р давхар';
       b.onclick = () => { currentFloor = f; initFloorTabs(); loadHeatmap(); };
       tabs.appendChild(b);
+    }
+  }
+
+  async function loadLayoutConfig(showToast) {
+    const path = document.getElementById('layoutPath').value.trim();
+    if (!path) return;
+    try {
+      const res = await fetch(path + (path.includes('?') ? '&' : '?') + 't=' + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const cfg = jsyaml.load(text) || {};
+      const building = (cfg.museum && cfg.museum.building) || {};
+
+      floors = Math.max(1, Number(building.floors || floors));
+      rows = Math.max(1, Number(building['grid-rows'] || rows));
+      cols = Math.max(1, Number(building['grid-cols'] || cols));
+      if (currentFloor > floors) currentFloor = floors;
+
+      initFloorTabs();
+      if (showToast) {
+        document.getElementById('heatmapInfo').textContent = `Layout loaded: ${floors}F, ${rows}x${cols}`;
+      }
+    } catch (e) {
+      if (showToast) {
+        document.getElementById('heatmapInfo').textContent = '❌ Layout load failed';
+      }
+      console.error(e);
     }
   }
   initFloorTabs();

@@ -5,9 +5,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "museum")
 public class MuseumProperties {
 
+    private Building building = new Building();
     private Art art = new Art();
 
+    public Building getBuilding() { return building; }
     public Art getArt() { return art; }
+
+    public static class Building {
+        private int floors = 3;
+        private int gridRows = 10;
+        private int gridCols = 10;
+
+        public int getFloors() { return floors; }
+        public void setFloors(int v) { this.floors = v; }
+        public int getGridRows() { return gridRows; }
+        public void setGridRows(int v) { this.gridRows = v; }
+        public int getGridCols() { return gridCols; }
+        public void setGridCols(int v) { this.gridCols = v; }
+    }
 
     public static class Art {
         private int nearbyRange = 2;

@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * Core-с ирсэн MQTT event боловсруулна.
+ * Processes MQTT events received from core-service.
  *
  * Expected payload:
  * {
  *   "gridId":    "C3",
  *   "floorId":   1,
- *   "prevGridId": "B2",   // null бол анхны орох
+ *   "prevGridId": "B2",   // null on first entry
  *   "timestamp": 123456
  * }
  */

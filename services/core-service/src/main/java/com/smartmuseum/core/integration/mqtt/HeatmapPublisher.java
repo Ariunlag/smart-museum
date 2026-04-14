@@ -29,9 +29,9 @@ public class HeatmapPublisher {
     }
 
     /**
-     * Байрлал өөрчлөгдсөн үед 1 event publish хийнэ.
-     * prevGridId → Heatmap -1 хийнэ (null бол анхны байрлал)
-     * gridId     → Heatmap +1 хийнэ
+     * Publishes one event when location changes.
+     * prevGridId -> decrements heatmap count (null on first entry)
+     * gridId     -> increments heatmap count
      */
     public void publish(String gridId, int floorId, String prevGridId, Integer prevFloorId) {
         try {

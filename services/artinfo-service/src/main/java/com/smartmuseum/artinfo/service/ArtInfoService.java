@@ -21,9 +21,9 @@ public class ArtInfoService {
         this.props      = props;
     }
 
-    /**
-     * BLE flow — gridId + floorId-р ойролцоох art хайна.
-     */
+        /**
+         * BLE flow: finds nearby artworks by gridId and floorId.
+         */
     public ArtInfoResponse findNearest(String gridId, int floorId) {
         int range      = props.getArt().getNearbyRange();
         int maxResults = props.getArt().getMaxResults();
@@ -52,9 +52,9 @@ public class ArtInfoService {
         return new ArtInfoResponse(dtos);
     }
 
-    /**
-     * QR/NFC flow — artId-р хайна.
-     */
+        /**
+         * QR/NFC flow: finds a single artwork by artId.
+         */
     public ArtInfoResponse.ArtDto findById(String artId) {
         return repository.findById(artId)
                 .map(a -> new ArtInfoResponse.ArtDto(

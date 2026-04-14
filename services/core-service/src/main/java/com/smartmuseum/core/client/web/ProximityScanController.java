@@ -18,7 +18,7 @@ public class ProximityScanController {
     }
 
     /**
-     * QR эсвэл NFC scan-р artId ирнэ.
+     * Receives an art identifier from a QR or NFC scan.
      *
      * POST /proximity/scan
      * {

@@ -12,11 +12,11 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Гар утастай WebSocket холболт удирдана.
+ * Manages WebSocket connections for mobile devices.
  *
- * Холболт тогтоох:  ws://localhost:8080/ws?deviceId=phone-123
- * Холболт тасрах:   session-г registry-с устгана
- * Push хийх:        push(deviceId, payload) дуудна
+ * Connect:    ws://localhost:8080/ws?deviceId=phone-123
+ * Disconnect: removes the session from the registry
+ * Push:       call push(deviceId, payload)
  */
 @Component
 public class DeviceWebSocketHandler extends TextWebSocketHandler {

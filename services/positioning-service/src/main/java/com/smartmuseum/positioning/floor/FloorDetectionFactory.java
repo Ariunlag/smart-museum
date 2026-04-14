@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * yml-д заасан strategy-г autowire хийж буцаана.
- * strategy: beacon → beaconFloorStrategy bean
- * strategy: manual → manualFloorStrategy bean (цаашид)
+ * Resolves and returns the floor detection strategy configured in YAML.
+ * strategy: beacon -> beaconFloorStrategy bean
+ * strategy: manual -> manualFloorStrategy bean (future extension)
  */
 @Component
 public class FloorDetectionFactory {

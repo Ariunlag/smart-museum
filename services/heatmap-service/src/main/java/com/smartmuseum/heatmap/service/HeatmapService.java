@@ -29,9 +29,9 @@ public class HeatmapService {
     }
 
     /**
-     * MQTT event ирэхэд дуудагдана.
-     * gridId    → +1 (шинэ байрлал)
-     * prevGridId → -1 (өмнөх байрлал, null бол анхны орох)
+     * Called when an MQTT event arrives.
+     * gridId -> +1 (new location)
+     * prevGridId -> -1 (previous location, null on first entry)
      */
     public void processEvent(String gridId, int floorId, String prevGridId, Integer prevFloorId) {
         // Өмнөх grid-с гарсан
@@ -50,7 +50,7 @@ public class HeatmapService {
         }
     }
 
-    /** Хэрэглэгч disconnect болсон үед */
+    /** Handles user disconnect events. */
     public void processLeave(String gridId, int floorId) {
         if (gridId != null) {
             store.leave(gridId, floorId);
@@ -58,8 +58,8 @@ public class HeatmapService {
     }
 
     /**
-     * Scheduler: yml-д тохируулсан interval-р MongoDB-д persist хийнэ.
-     * fixedDelayString — yml-с авна
+     * Persists heatmap snapshot to MongoDB on the configured schedule.
+     * fixedDelayString is loaded from YAML configuration.
      */
     @Scheduled(fixedDelayString = "#{${museum.heatmap.persist-interval-minutes} * 60000}")
     public void persist() {

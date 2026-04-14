@@ -10,11 +10,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * BLE readings → normalized float vector[beaconTotal] үүсгэнэ.
+ * Builds a normalized float vector[beaconTotal] from BLE readings.
  *
- * Beacon order: floor-beacon-ууд эхэлж, дараа beacon-0..N
- * Ирээгүй beacon → defaultRssi (-100)
- * Normalize: (rssi - (-100)) / (0 - (-100)) → [0.0 .. 1.0]
+ * Beacon order: floor anchors first, then beacon-0..N
+ * Missing beacon readings use defaultRssi (-100)
+ * Normalization: (rssi - (-100)) / (0 - (-100)) -> [0.0 .. 1.0]
  */
 @Component
 public class VectorBuilder {
@@ -27,19 +27,28 @@ public class VectorBuilder {
     private final List<String> beaconOrder;
 
     public VectorBuilder(MuseumProperties props) {
-        this.total       = props.getBeacons().getTotal();
         this.defaultRssi = props.getBeacons().getDefaultRssi();
 
-        // Floor beacon-уудыг эхэнд тавина
-        this.beaconOrder = new ArrayList<>(
-                props.getBeacons().getFloorBeacons().stream()
-                        .map(MuseumProperties.FloorBeacon::getId)
-                        .toList()
-        );
+        var configured = props.getBeacons().getPositions();
+        if (configured != null && !configured.isEmpty()) {
+            this.beaconOrder = new ArrayList<>(
+                    configured.stream().map(MuseumProperties.BeaconPosition::getId).toList()
+            );
+            this.total = beaconOrder.size();
+        } else {
+            this.total = props.getBeacons().getTotal();
 
-        // Үлдсэн slot-уудад beacon-0..N нэр үүсгэнэ
-        for (int i = beaconOrder.size(); i < total; i++) {
-            beaconOrder.add("beacon-" + i);
+            // Fallback: Floor beacon-уудыг эхэнд тавина
+            this.beaconOrder = new ArrayList<>(
+                    props.getBeacons().getFloorBeacons().stream()
+                            .map(MuseumProperties.FloorBeacon::getId)
+                            .toList()
+            );
+
+            // Үлдсэн slot-уудад beacon-0..N нэр үүсгэнэ
+            for (int i = beaconOrder.size(); i < total; i++) {
+                beaconOrder.add("beacon-" + i);
+            }
         }
     }
 
