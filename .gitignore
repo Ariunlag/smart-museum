@@ -1,0 +1,44 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- IDE metadata ---
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Keep shared workspace settings if needed; ignore local VS Code state
+.vscode/*.code-workspace
+
+# --- Java / Maven ---
+**/target/
+**/build/
+*.class
+*.log
+
+# --- Python ---
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# --- Local environment files ---
+.env
+.env.local
+.env.*.local
+
+# Keep repo-provided environment presets
+!.env.example
+!.env.museum
+!.env.university
+
+# --- Planning / review docs (not project source) ---
+docs/
+*proposal*.docx
