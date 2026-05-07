@@ -1,12 +1,13 @@
 package com.smartmuseum.core.registry;
 
+import com.smartmuseum.core.client.ws.SessionRegistry;
 import com.smartmuseum.core.common.config.MuseumProperties;
 import com.smartmuseum.core.registry.domain.ServiceRecord;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,18 +19,17 @@ import java.util.Map;
  * PATCH  /admin/services/{id}/enable          -> enable a service
  * DELETE /admin/services/{id}                 -> soft delete (REMOVED)
  */
-import org.springframework.web.bind.annotation.CrossOrigin;
-
-@CrossOrigin(origins = "*")
 @RestController
 public class AdminController {
 
     private final RegistryService  registryService;
     private final MuseumProperties props;
+    private final SessionRegistry  sessionRegistry;
 
-    public AdminController(RegistryService registryService, MuseumProperties props) {
+    public AdminController(RegistryService registryService, MuseumProperties props, SessionRegistry sessionRegistry) {
         this.registryService = registryService;
         this.props           = props;
+        this.sessionRegistry = sessionRegistry;
     }
 
     // ── Public ───────────────────────────────────────────
@@ -73,5 +73,17 @@ public class AdminController {
             @PathVariable String serviceId,
             @RequestParam(defaultValue = "admin") String adminId) {
         return ResponseEntity.ok(registryService.remove(serviceId, adminId));
+    }
+
+    // ── Device Monitoring ────────────────────────────────
+    @GetMapping("/admin/devices")
+    public List<SessionRegistry.AdminDeviceInfo> listDevices() {
+        return sessionRegistry.getDeviceSnapshots();
+    }
+
+    @GetMapping("/admin/devices/{deviceId}")
+    public ResponseEntity<SessionRegistry.AdminDeviceInfo> getDevice(@PathVariable String deviceId) {
+        SessionRegistry.AdminDeviceInfo device = sessionRegistry.getDevice(deviceId);
+        return device != null ? ResponseEntity.ok(device) : ResponseEntity.notFound().build();
     }
 }

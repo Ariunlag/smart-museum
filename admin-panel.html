@@ -7,18 +7,18 @@
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
     :root {
-      --bg-top: #1a2a23;
-      --bg-bottom: #0f1418;
-      --panel: #121a1f;
-      --panel-soft: #18222a;
-      --border: #29404d;
-      --text: #ecf4f7;
-      --muted: #9db2bd;
-      --accent: #3ecf8e;
-      --accent-soft: #2cae78;
-      --warn: #f59e0b;
-      --danger: #f87171;
-      --shadow: rgba(8, 17, 24, 0.45);
+      --bg-top: #eef2fb;
+      --bg-bottom: #f8faff;
+      --panel: #ffffff;
+      --panel-soft: #f0f4fb;
+      --border: #c8d5e8;
+      --text: #0a1628;
+      --muted: #4a6080;
+      --accent: #0B3D91;
+      --accent-soft: #0a3278;
+      --warn: #FFC72C;
+      --danger: #dc2626;
+      --shadow: rgba(11, 61, 145, 0.10);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,58 +27,21 @@
       font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
       color: var(--text);
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(62, 207, 142, 0.10), transparent 30%),
-        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.10), transparent 26%),
-        linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
+      background: linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
       background-attachment: fixed;
       overflow-x: hidden;
     }
 
-    body::before,
-    body::after {
-      content: '';
-      position: fixed;
-      z-index: -1;
-      border-radius: 999px;
-      filter: blur(36px);
-      opacity: 0.25;
-      pointer-events: none;
-    }
-
-    body::before {
-      width: 340px;
-      height: 340px;
-      background: #22c55e;
-      top: -90px;
-      right: -120px;
-      animation: drift 14s ease-in-out infinite alternate;
-    }
-
-    body::after {
-      width: 280px;
-      height: 280px;
-      background: #fb923c;
-      bottom: -120px;
-      left: -100px;
-      animation: drift 11s ease-in-out infinite alternate-reverse;
-    }
-
-    @keyframes drift {
-      from { transform: translateY(-8px) scale(1); }
-      to { transform: translateY(12px) scale(1.08); }
-    }
-
     .header {
-      background: rgba(18, 26, 31, 0.86);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
+      background: #ffffff;
+      border-bottom: 2px solid var(--accent);
       padding: 16px 22px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
+      box-shadow: 0 2px 12px var(--shadow);
     }
 
     .header-left { display: flex; align-items: center; gap: 12px; }
@@ -88,10 +51,11 @@
       border-radius: 10px;
       display: grid;
       place-items: center;
-      background: linear-gradient(150deg, rgba(62, 207, 142, 0.3), rgba(249, 115, 22, 0.2));
+      background: linear-gradient(150deg, var(--accent), #1a5cbe);
       font-size: 18px;
+      color: #ffffff;
     }
-    .title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
+    .title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; color: var(--accent); }
     .subtitle {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
@@ -100,12 +64,12 @@
     }
 
     .space-badge {
-      background: rgba(62, 207, 142, 0.16);
-      border: 1px solid rgba(62, 207, 142, 0.42);
+      background: var(--accent);
+      border: none;
       border-radius: 999px;
       padding: 5px 12px;
       font-size: 11px;
-      color: #d8f7ea;
+      color: #ffffff;
       font-family: 'IBM Plex Mono', monospace;
       white-space: nowrap;
     }
@@ -113,17 +77,16 @@
     .layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 72px); }
 
     .sidebar {
-      background: rgba(14, 21, 26, 0.85);
-      border-right: 1px solid var(--border);
+      background: var(--accent);
+      border-right: none;
       padding: 18px 0;
-      backdrop-filter: blur(8px);
     }
 
     .nav-item {
       padding: 12px 18px;
       cursor: pointer;
       font-size: 13px;
-      color: var(--muted);
+      color: rgba(255, 255, 255, 0.72);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -132,20 +95,20 @@
     }
 
     .nav-item:hover {
-      background: rgba(62, 207, 142, 0.10);
-      color: var(--text);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
     }
 
     .nav-item.active {
-      background: rgba(62, 207, 142, 0.14);
-      color: #cbf9e5;
-      border-left-color: var(--accent);
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--warn);
+      border-left-color: var(--warn);
     }
 
     .nav-section {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 10px;
-      color: #6e8591;
+      color: rgba(255, 255, 255, 0.38);
       padding: 14px 18px 6px;
       text-transform: uppercase;
       letter-spacing: 1.2px;
@@ -167,16 +130,17 @@
     }
 
     .stat-card {
-      background: linear-gradient(170deg, rgba(24, 34, 42, 0.95), rgba(17, 25, 32, 0.95));
+      background: #ffffff;
       border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
       border-radius: 14px;
       padding: 14px 16px;
-      box-shadow: 0 10px 24px var(--shadow);
+      box-shadow: 0 4px 16px var(--shadow);
     }
 
     .stat-label {
       font-size: 10px;
-      color: #8ca3ae;
+      color: var(--muted);
       margin-bottom: 6px;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -184,15 +148,15 @@
     }
 
     .stat-value { font-size: 30px; font-weight: 700; }
-    .stat-active  { color: #4ade80; }
-    .stat-offline { color: #f59e0b; }
+    .stat-active  { color: #b07800; }
+    .stat-offline { color: #c07000; }
     .stat-disabled{ color: #94a3b8; }
-    .stat-total   { color: #2dd4bf; }
+    .stat-total   { color: var(--accent); }
 
     .section-title {
       font-size: 15px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--accent);
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -200,22 +164,22 @@
     }
 
     .table-wrap {
-      background: linear-gradient(170deg, rgba(20, 28, 35, 0.95), rgba(14, 21, 27, 0.94));
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: auto;
       margin-bottom: 24px;
-      box-shadow: 0 10px 24px var(--shadow);
+      box-shadow: 0 4px 16px var(--shadow);
     }
 
     table { width: 100%; border-collapse: collapse; min-width: 760px; }
 
     th {
-      background: rgba(14, 22, 28, 0.9);
+      background: var(--panel-soft);
       padding: 10px 14px;
       text-align: left;
       font-size: 10px;
-      color: #9bb0bc;
+      color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
       border-bottom: 1px solid var(--border);
@@ -225,11 +189,11 @@
     td {
       padding: 12px 14px;
       font-size: 13px;
-      border-bottom: 1px solid rgba(41, 64, 77, 0.55);
+      border-bottom: 1px solid rgba(200, 213, 232, 0.7);
     }
 
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(62, 207, 142, 0.08); }
+    tr:hover td { background: rgba(11, 61, 145, 0.04); }
 
     .badge {
       display: inline-block;
@@ -240,10 +204,10 @@
       font-family: 'IBM Plex Mono', monospace;
     }
 
-    .badge-active   { background: rgba(74, 222, 128, 0.18); color: #8bf8b2; border: 1px solid rgba(74, 222, 128, 0.42); }
-    .badge-offline  { background: rgba(245, 158, 11, 0.18); color: #fdcf73; border: 1px solid rgba(245, 158, 11, 0.42); }
-    .badge-disabled { background: rgba(148, 163, 184, 0.17); color: #bcc7da; border: 1px solid rgba(148, 163, 184, 0.35); }
-    .badge-removed  { background: rgba(248, 113, 113, 0.16); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.42); }
+    .badge-active   { background: rgba(11, 61, 145, 0.1); color: #0B3D91; border: 1px solid rgba(11, 61, 145, 0.3); }
+    .badge-offline  { background: rgba(176, 120, 0, 0.1); color: #b07800; border: 1px solid rgba(176, 120, 0, 0.3); }
+    .badge-disabled { background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid rgba(148, 163, 184, 0.4); }
+    .badge-removed  { background: rgba(220, 38, 38, 0.08); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.25); }
 
     .btn {
       padding: 6px 12px;
@@ -256,18 +220,18 @@
       transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    .btn:hover { opacity: 0.92; transform: translateY(-1px); }
-    .btn-disable  { background: rgba(245, 158, 11, 0.14); color: #f8be57; border-color: rgba(245, 158, 11, 0.35); }
-    .btn-enable   { background: rgba(74, 222, 128, 0.16); color: #84f2ab; border-color: rgba(74, 222, 128, 0.35); }
-    .btn-remove   { background: rgba(248, 113, 113, 0.14); color: #fba6a6; border-color: rgba(248, 113, 113, 0.35); }
-    .btn-refresh  { background: rgba(45, 212, 191, 0.16); color: #8af6ea; border-color: rgba(45, 212, 191, 0.35); padding: 7px 14px; }
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-disable  { background: rgba(176, 120, 0, 0.1); color: #b07800; border-color: rgba(176, 120, 0, 0.35); }
+    .btn-enable   { background: rgba(11, 61, 145, 0.1); color: #0B3D91; border-color: rgba(11, 61, 145, 0.35); }
+    .btn-remove   { background: rgba(220, 38, 38, 0.08); color: #dc2626; border-color: rgba(220, 38, 38, 0.28); }
+    .btn-refresh  { background: var(--accent); color: #ffffff; border-color: var(--accent); padding: 7px 14px; }
     .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
     .heatmap-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
 
     .floor-btn {
-      background: rgba(24, 34, 42, 0.8);
-      color: #b3c7d1;
+      background: #ffffff;
+      color: var(--muted);
       border: 1px solid var(--border);
       padding: 6px 14px;
       border-radius: 10px;
@@ -277,18 +241,18 @@
     }
 
     .floor-btn.active {
-      background: rgba(62, 207, 142, 0.18);
-      color: #d6fae8;
-      border-color: rgba(62, 207, 142, 0.55);
+      background: var(--accent);
+      color: var(--warn);
+      border-color: var(--accent);
     }
 
     .heatmap-grid {
       display: inline-grid;
       gap: 3px;
       padding: 10px;
-      background: rgba(11, 18, 22, 0.5);
+      background: var(--panel-soft);
       border-radius: 12px;
-      border: 1px solid rgba(41, 64, 77, 0.6);
+      border: 1px solid var(--border);
     }
 
     .hm-cell {
@@ -302,18 +266,18 @@
       font-weight: 700;
       cursor: default;
       transition: background 0.25s;
-      border: 1px solid rgba(41, 64, 77, 0.85);
+      border: 1px solid rgba(200, 213, 232, 0.8);
       color: #fff;
     }
 
-    .hm-cell.outside { background: #0a1015 !important; border-color: #17222b; color: #334852; }
+    .hm-cell.outside { background: #e8eef8 !important; border-color: #d0dcea; color: #a0b0c8; }
 
     .legend {
       display: flex;
       gap: 10px;
       align-items: center;
       font-size: 11px;
-      color: #9eb1bc;
+      color: var(--muted);
       margin-top: 10px;
       flex-wrap: wrap;
     }
@@ -324,14 +288,16 @@
       position: fixed;
       bottom: 18px;
       right: 18px;
-      background: rgba(12, 20, 26, 0.95);
+      background: #ffffff;
       border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
       border-radius: 10px;
       padding: 10px 14px;
       font-size: 12px;
+      color: var(--text);
       display: none;
       z-index: 100;
-      box-shadow: 0 10px 24px var(--shadow);
+      box-shadow: 0 8px 24px var(--shadow);
       max-width: 320px;
     }
 
@@ -346,12 +312,12 @@
       flex-wrap: wrap;
     }
 
-    .last-refresh { font-size: 11px; color: #7f96a1; font-family: 'IBM Plex Mono', monospace; }
+    .last-refresh { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
 
     input.url-input {
-      background: rgba(18, 26, 32, 0.9);
+      background: #ffffff;
       border: 1px solid var(--border);
-      color: #d8e6ec;
+      color: var(--text);
       padding: 7px 10px;
       border-radius: 10px;
       font-size: 12px;
@@ -360,15 +326,15 @@
     }
 
     input.url-input:focus {
-      border-color: rgba(62, 207, 142, 0.65);
-      box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.18);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(11, 61, 145, 0.15);
     }
 
     @media (max-width: 1100px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar {
         border-right: 0;
-        border-bottom: 1px solid var(--border);
+        border-bottom: none;
         display: flex;
         align-items: center;
         gap: 4px;
@@ -384,7 +350,7 @@
       }
       .nav-item.active {
         border-left: 0;
-        border-bottom-color: var(--accent);
+        border-bottom-color: var(--warn);
       }
     }
 
@@ -424,6 +390,7 @@
     <button class="btn btn-refresh" onclick="loadLayoutConfig(true)">Load Layout</button>
     <input class="url-input" id="coreUrl" value="http://localhost:8080" style="width:180px">
     <input class="url-input" id="heatmapUrl" value="http://localhost:8083" style="width:180px">
+    <input class="url-input" id="adminApiKey" type="password" value="museum-admin-dev-key" placeholder="Admin API key" style="width:160px" title="X-Admin-Key header value">
   </div>
 </div>
 
@@ -433,7 +400,7 @@
     <div class="nav-item active" onclick="showPage('services')">Service Registry</div>
     <div class="nav-item" onclick="showPage('heatmap')">Heatmap</div>
     <div class="nav-section">Monitor</div>
-    <div class="nav-item" onclick="showPage('logs')">Activity Log</div>
+    <div class="nav-item" onclick="showPage('devices')">Devices</div>
   </div>
 
   <div class="main">
@@ -467,7 +434,7 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="serviceTable"><tr><td colspan="6" style="color:#4a5568;text-align:center">Loading...</td></tr></tbody>
+          <tbody id="serviceTable"><tr><td colspan="6" style="color:#4a6080;text-align:center">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -483,31 +450,63 @@
       </div>
       <div class="heatmap-controls">
         <div id="floorBtns"></div>
-        <span id="heatmapMeta" style="font-size:12px;color:#718096"></span>
+        <span id="heatmapMeta" style="font-size:12px;color:#4a6080"></span>
       </div>
       <div style="overflow-x:auto">
         <div class="heatmap-grid" id="heatmapGrid"></div>
       </div>
       <div class="legend">
-        <div class="legend-box" style="background:#1a1a2e;border:1px solid #2d3748"></div><span>0</span>
-        <div class="legend-box" style="background:#1c3829"></div><span>1–2</span>
-        <div class="legend-box" style="background:#276749"></div><span>3–5</span>
-        <div class="legend-box" style="background:#c05621"></div><span>6–9</span>
+        <div class="legend-box" style="background:#dce6f5;border:1px solid #c8d5e8"></div><span>0</span>
+        <div class="legend-box" style="background:#5b8fd4"></div><span>1–2</span>
+        <div class="legend-box" style="background:#0B3D91"></div><span>3–5</span>
+        <div class="legend-box" style="background:#b07800"></div><span>6–9</span>
         <div class="legend-box" style="background:#9b2c2c"></div><span>10+ alert</span>
       </div>
     </div>
 
-    <!-- Logs Page -->
-    <div id="page-logs" style="display:none">
-      <div class="section-title">Activity Log</div>
-      <div class="table-wrap" style="height:400px;overflow-y:auto">
+    <!-- Devices Page -->
+    <div id="page-devices" style="display:none">
+      <div class="refresh-row">
+        <div class="section-title">Connected Devices</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="last-refresh" id="lastDeviceRefresh">—</span>
+          <button class="btn btn-refresh" onclick="loadDevices()">Refresh</button>
+          <button class="btn btn-enable" id="autoDevicesBtn" onclick="toggleAutoDevices()">Auto (2s)</button>
+        </div>
+      </div>
+      <div class="table-wrap">
         <table>
-          <thead><tr><th>Time</th><th>Event</th><th>Service</th><th>Detail</th></tr></thead>
-          <tbody id="logTable"><tr><td colspan="4" style="color:#4a5568;text-align:center">No logs yet</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Device ID</th>
+              <th>Status</th>
+              <th>Floor</th>
+              <th>Grid</th>
+              <th>Last Seen</th>
+              <th>Seq</th>
+              <th>Art</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="deviceTable"><tr><td colspan="7" style="color:#4a6080;text-align:center">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Device Detail Drawer -->
+<div id="deviceDrawer" style="position:fixed;right:0;top:0;bottom:0;width:400px;background:#0B3D91;border-left:none;transform:translateX(100%);transition:transform 0.3s;z-index:200;overflow-y:auto;box-shadow:-10px 0 32px rgba(11,61,145,0.25)">
+  <div style="padding:20px;border-bottom:1px solid rgba(255,255,255,0.18)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-weight:700;color:#FFC72C;font-size:14px" id="drawerTitle">Device</div>
+      <button style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:16px" onclick="closeDeviceDrawer()">✕</button>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.55)" id="drawerDeviceId"></div>
+  </div>
+  <div style="padding:20px">
+    <div id="drawerContent">Loading...</div>
   </div>
 </div>
 
@@ -516,12 +515,17 @@
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script>
   let currentFloor = 1, floors = 1, rows = 1, cols = 1;
-  let autoTimer = null, logs = [];
+  let autoTimer = null, autoDevicesTimer = null;
   let shapePolygon = null;
 
   function getQueryParam(name) {
     const params = new URLSearchParams(location.search);
     return params.get(name);
+  }
+
+  function adminHeaders() {
+    const key = document.getElementById('adminApiKey').value;
+    return key ? { 'X-Admin-Key': key } : {};
   }
 
   function applyBrand(siteText) {
@@ -538,7 +542,7 @@
   async function detectSiteDefaultsFromCore() {
     const coreUrl = document.getElementById('coreUrl').value;
     try {
-      const res = await fetch(`${coreUrl}/admin/site-config`);
+      const res = await fetch(`${coreUrl}/admin/site-config`, { headers: adminHeaders() });
       if (!res.ok) return;
       const cfg = await res.json();
       const spaceId = (cfg.spaceId || cfg.site || '').toLowerCase();
@@ -617,21 +621,44 @@
 
   // ── Navigation ───────────────────────────────────────
   function showPage(name) {
-    ['services','heatmap','logs'].forEach(p => {
+    const pages = ['services', 'heatmap', 'devices'];
+    pages.forEach(p => {
       document.getElementById('page-' + p).style.display = p === name ? '' : 'none';
     });
     document.querySelectorAll('.nav-item').forEach((el, i) => {
-      el.classList.toggle('active', ['services','heatmap','logs'][i] === name);
+      el.classList.toggle('active', pages[i] === name);
     });
-    if (name === 'heatmap') loadHeatmap();
+    if (name !== 'heatmap' && autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      const btn = document.getElementById('autoBtn');
+      btn.textContent = 'Auto (3s)';
+      btn.className = 'btn btn-enable';
+    }
+    if (name === 'heatmap') {
+      loadHeatmap();
+      if (!autoTimer) {
+        autoTimer = setInterval(loadHeatmap, 3000);
+        const btn = document.getElementById('autoBtn');
+        btn.textContent = 'Stop Auto';
+        btn.className = 'btn btn-disable';
+      }
+    }
     if (name === 'services') loadServices();
+    if (name === 'devices') loadDevices();
   }
 
   // ── Services ─────────────────────────────────────────
   async function loadServices() {
+
+
+
+
+
+
     const url = document.getElementById('coreUrl').value;
     try {
-      const res  = await fetch(`${url}/admin/services`);
+      const res  = await fetch(`${url}/admin/services`, { headers: adminHeaders() });
       const data = await res.json();
       renderServices(data);
       document.getElementById('lastRefresh').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
@@ -652,20 +679,20 @@
 
     const tbody = document.getElementById('serviceTable');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:#4a5568;text-align:center">No services registered</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="color:#4a6080;text-align:center">No services registered</td></tr>';
       return;
     }
 
     tbody.innerHTML = data.map(s => `
       <tr>
         <td>
-          <div style="font-weight:bold;color:#e2e8f0">${s.serviceName || s.serviceId}</div>
-          <div style="font-size:11px;color:#718096">${s.serviceId}</div>
+          <div style="font-weight:bold;color:#0a1628">${s.serviceName || s.serviceId}</div>
+          <div style="font-size:11px;color:#4a6080">${s.serviceId}</div>
         </td>
         <td><span class="badge badge-${s.status.toLowerCase()}">${s.status}</span></td>
-        <td style="font-size:12px;color:#a0aec0">${s.serviceUrl || '—'}</td>
-        <td style="font-size:12px;color:#718096">${s.version || '—'}</td>
-        <td style="font-size:12px;color:#718096">${s.lastHeartbeatAt ? timeAgo(s.lastHeartbeatAt) : '—'}</td>
+        <td style="font-size:12px;color:#4a6080">${s.serviceUrl || '—'}</td>
+        <td style="font-size:12px;color:#4a6080">${s.version || '—'}</td>
+        <td style="font-size:12px;color:#4a6080">${s.lastHeartbeatAt ? timeAgo(s.lastHeartbeatAt) : '—'}</td>
         <td>
           <div class="btn-group">
             ${s.status === 'ACTIVE' || s.status === 'OFFLINE'
@@ -676,7 +703,7 @@
               : ''}
             ${s.status !== 'REMOVED'
               ? `<button class="btn btn-remove" onclick="removeService('${s.serviceId}')">Remove</button>`
-              : '<span style="color:#4a5568;font-size:12px">Removed</span>'}
+              : '<span style="color:#4a6080;font-size:12px">Removed</span>'}
           </div>
         </td>
       </tr>
@@ -685,16 +712,14 @@
 
   async function disableService(id) {
     const url = document.getElementById('coreUrl').value;
-    await fetch(`${url}/admin/services/${id}/disable`, { method: 'PATCH' });
-    addLog('DISABLED', id, 'Admin action');
+    await fetch(`${url}/admin/services/${id}/disable`, { method: 'PATCH', headers: adminHeaders() });
     showToast(`${id} disabled`);
     loadServices();
   }
 
   async function enableService(id) {
     const url = document.getElementById('coreUrl').value;
-    await fetch(`${url}/admin/services/${id}/enable`, { method: 'PATCH' });
-    addLog('ENABLED', id, 'Admin action');
+    await fetch(`${url}/admin/services/${id}/enable`, { method: 'PATCH', headers: adminHeaders() });
     showToast(`${id} enabled`);
     loadServices();
   }
@@ -702,8 +727,7 @@
   async function removeService(id) {
     if (!confirm(`Remove "${id}"? This will soft-delete the service.`)) return;
     const url = document.getElementById('coreUrl').value;
-    await fetch(`${url}/admin/services/${id}`, { method: 'DELETE' });
-    addLog('REMOVED', id, 'Admin action');
+    await fetch(`${url}/admin/services/${id}`, { method: 'DELETE', headers: adminHeaders() });
     showToast(`${id} removed`);
     loadServices();
   }
@@ -722,10 +746,10 @@
   }
 
   function hmColor(n) {
-    if (n === 0) return '#1a1a2e';
-    if (n <= 2)  return '#1c3829';
-    if (n <= 5)  return '#276749';
-    if (n <= 9)  return '#c05621';
+    if (n === 0) return '#dce6f5';
+    if (n <= 2)  return '#5b8fd4';
+    if (n <= 5)  return '#0B3D91';
+    if (n <= 9)  return '#b07800';
     return '#9b2c2c';
   }
 
@@ -750,8 +774,26 @@
   }
 
   async function loadHeatmap() {
+    const coreUrl = document.getElementById('coreUrl').value;
     const url = document.getElementById('heatmapUrl').value;
     try {
+      let heatmapStatus = null;
+      try {
+        const svcRes = await fetch(`${coreUrl}/admin/services`, { headers: adminHeaders() });
+        if (svcRes.ok) {
+          const services = await svcRes.json();
+          const heatmapSvc = (services || []).find(s => s.serviceId === 'heatmap-service');
+          heatmapStatus = heatmapSvc?.status;
+        }
+      } catch (_) {}
+      // Only block if admin explicitly disabled/removed the service
+      if (heatmapStatus === 'DISABLED' || heatmapStatus === 'REMOVED') {
+        document.getElementById('heatmapGrid').innerHTML = '';
+        document.getElementById('heatmapMeta').textContent =
+          `Heatmap service is ${heatmapStatus}. Enable it from Service Registry.`;
+        return;
+      }
+
       const res  = await fetch(`${url}/api/heatmap/${currentFloor}`);
       const data = await res.json();
       const grid = document.getElementById('heatmapGrid');
@@ -800,21 +842,6 @@
     }
   }
 
-  // ── Logs ─────────────────────────────────────────────
-  function addLog(event, service, detail) {
-    logs.unshift({ time: new Date().toLocaleTimeString(), event, service, detail });
-    if (logs.length > 50) logs.pop();
-    const tbody = document.getElementById('logTable');
-    tbody.innerHTML = logs.map(l => `
-      <tr>
-        <td style="color:#718096;font-size:12px">${l.time}</td>
-        <td><span class="badge badge-${l.event === 'ENABLED' ? 'active' : l.event === 'DISABLED' ? 'disabled' : 'removed'}">${l.event}</span></td>
-        <td style="font-size:12px">${l.service}</td>
-        <td style="font-size:12px;color:#718096">${l.detail}</td>
-      </tr>
-    `).join('');
-  }
-
   // ── Utils ─────────────────────────────────────────────
   function timeAgo(ts) {
     const diff = Math.floor((Date.now() - ts) / 1000);
@@ -828,6 +855,223 @@
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Devices ──────────────────────────────────────────
+  let allDevices = [];
+
+  async function loadDevices() {
+    const url = document.getElementById('coreUrl').value;
+    try {
+      const res = await fetch(`${url}/admin/devices`, { headers: adminHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      allDevices = await res.json();
+      renderDevices();
+      document.getElementById('lastDeviceRefresh').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      document.getElementById('deviceTable').innerHTML =
+        `<tr><td colspan="7" style="color:#fc8181;text-align:center">Cannot connect to Core (${url})</td></tr>`;
+    }
+  }
+
+  function renderDevices() {
+    const tbody = document.getElementById('deviceTable');
+    if (!allDevices.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="color:#4a6080;text-align:center">No devices connected</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allDevices.map(d => `
+      <tr>
+        <td style="font-weight:bold;color:#0a1628">${d.deviceId}</td>
+        <td><span class="badge ${d.status === 'connected' ? 'badge-active' : 'badge-offline'}">${d.status}</span></td>
+        <td style="text-align:center;font-size:12px;color:#4a6080">${d.lastFloorId >= 0 ? d.lastFloorId : '—'}</td>
+        <td style="text-align:center;font-size:12px;color:#4a6080">${d.lastGridId || '—'}</td>
+        <td style="font-size:12px;color:#4a6080">${d.lastSeenAt ? timeAgo(d.lastSeenAt) : '—'}</td>
+        <td style="text-align:center;font-size:12px;color:#4a6080">${d.lastEventSequence}</td>
+        <td style="font-size:12px;color:#4a6080">${d.lastArtTitle ? (escapeHtml(d.lastArtTitle) + (d.lastArtArtist ? ' — ' + escapeHtml(d.lastArtArtist) : '')) : '—'}</td>
+        <td><button class="btn btn-enable" style="padding:4px 8px;font-size:11px" onclick="openDeviceDrawer('${d.deviceId}')">Detail</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function openDeviceDrawer(deviceId) {
+    const url = document.getElementById('coreUrl').value;
+    try {
+      const res = await fetch(`${url}/admin/devices/${deviceId}`, { headers: adminHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const device = await res.json();
+      
+      document.getElementById('drawerTitle').textContent = deviceId;
+      document.getElementById('drawerDeviceId').textContent = `Status: ${device.status}`;
+      
+      const content = `
+        <div style="font-size:12px;line-height:1.8">
+          <div><strong>Floor:</strong> ${device.lastFloorId >= 0 ? device.lastFloorId : 'Unknown'}</div>
+          <div><strong>Grid:</strong> ${device.lastGridId || 'Unknown'}</div>
+          <div><strong>Last Seen:</strong> ${new Date(device.lastSeenAt).toLocaleString()}</div>
+          <div><strong>Sequence:</strong> ${device.lastEventSequence}</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.18)">
+            <div style="color:rgba(255,255,255,0.55);font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Last Location Update</div>
+            <div style="background:rgba(0,0,0,0.22);padding:8px;border-radius:8px;font-family:monospace;font-size:11px;color:#FFC72C;word-break:break-all">
+              Floor: ${device.lastFloorId >= 0 ? device.lastFloorId : 'N/A'}<br/>
+              Grid: ${device.lastGridId || 'N/A'}<br/>
+              Seq: ${device.lastEventSequence}
+            </div>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.12)">
+            <div style="color:rgba(255,255,255,0.55);font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Last Art Info Received</div>
+            <div style="background:rgba(0,0,0,0.12);padding:10px;border-radius:8px;font-size:12px;color:#ffffff">
+              <div style="font-weight:700;color:#FFC72C">${device.lastArtTitle ? escapeHtml(device.lastArtTitle) : '—'}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.7)">${device.lastArtArtist ? escapeHtml(device.lastArtArtist) : ''}</div>
+              <div style="margin-top:8px;color:rgba(255,255,255,0.85);font-size:12px">${device.lastArtDescription ? escapeHtml(device.lastArtDescription) : ''}</div>
+              <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.55)">Source: ${device.lastArtSource || '—'} · Received: ${device.lastArtAt ? new Date(device.lastArtAt).toLocaleString() : '—'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('drawerContent').innerHTML = content;
+      document.getElementById('deviceDrawer').style.transform = 'translateX(0)';
+    } catch (e) {
+      showToast('Error loading device details');
+      console.error(e);
+    }
+  }
+
+  function closeDeviceDrawer() {
+    document.getElementById('deviceDrawer').style.transform = 'translateX(100%)';
+  }
+
+  function toggleAutoDevices() {
+    const btn = document.getElementById('autoDevicesBtn');
+    if (autoDevicesTimer) {
+      clearInterval(autoDevicesTimer);
+      autoDevicesTimer = null;
+      btn.textContent = 'Auto (2s)';
+      btn.className = 'btn btn-enable';
+    } else {
+      autoDevicesTimer = setInterval(loadDevices, 2000);
+      btn.textContent = 'Stop Auto';
+      btn.className = 'btn btn-disable';
+      loadDevices();
+    }
+  }
+
+  // ── System Internals ────────────────────────────────
+  async function loadSystemStats() {
+    const url = document.getElementById('artInfoUrl').value;
+    try {
+      const [artRes, vectorRes] = await Promise.all([
+        fetch(`${url}/internal/art/admin/system/art-stats`,    { headers: adminHeaders() }),
+        fetch(`${url}/internal/art/admin/system/vector-stats`, { headers: adminHeaders() })
+      ]);
+      if (!artRes.ok) throw new Error(`Art stats HTTP ${artRes.status}: ${artRes.statusText}`);
+      if (!vectorRes.ok) throw new Error(`Vector stats HTTP ${vectorRes.status}: ${vectorRes.statusText}`);
+      const [artStats, vectorStats] = await Promise.all([artRes.json(), vectorRes.json()]);
+      renderSystemStats(artStats, vectorStats);
+      document.getElementById('lastSystemRefresh').textContent = new Date().toLocaleTimeString();
+    } catch (err) {
+      console.error('System stats error:', err);
+      document.getElementById('systemStatsGrid').innerHTML = `<div style="grid-column:1/-1;color:#e53e3e;font-size:13px;padding:12px">Error: ${err.message}</div>`;
+      document.getElementById('artsByFloorTable').innerHTML = '<tr><td colspan="2" style="color:#e53e3e;text-align:center">Failed to load</td></tr>';
+      document.getElementById('gridDistributionTable').innerHTML = '<tr><td colspan="2" style="color:#e53e3e;text-align:center">Failed to load</td></tr>';
+      document.getElementById('vectorCellsTable').innerHTML = '<tr><td colspan="6" style="color:#e53e3e;text-align:center">Failed to load</td></tr>';
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function formatVector(vector) {
+    if (!Array.isArray(vector)) return '<span style="color:#94a3b8">No vector returned</span>';
+    const values = vector.map(v => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toFixed(3) : String(v);
+    });
+    return `<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0a1628;word-break:break-word">${escapeHtml(values.join(', '))}</span>`;
+  }
+
+  function renderSystemStats(stats, vectorStats) {
+    document.getElementById('statTotalArts').textContent = stats.totalArts || '0';
+    document.getElementById('statOccupiedGrids').textContent = stats.occupiedGrids || '0';
+    document.getElementById('statTotalGrids').textContent = stats.totalGrids || '0';
+    document.getElementById('statCoverage').textContent = (stats.gridCoverage || '0') + '%';
+
+    // Arts by floor
+    const floorTable = document.getElementById('artsByFloorTable');
+    if (stats.artsByFloor && typeof stats.artsByFloor === 'object') {
+      const rows = Object.entries(stats.artsByFloor)
+        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+        .map(([floor, count]) => `<tr><td>Floor ${floor}</td><td>${count}</td></tr>`)
+        .join('');
+      floorTable.innerHTML = rows || '<tr><td colspan="2" style="color:#4a6080">No data</td></tr>';
+    }
+
+    // Grid distribution
+    const gridTable = document.getElementById('gridDistributionTable');
+    if (stats.artsByGrid && typeof stats.artsByGrid === 'object') {
+      const rows = Object.entries(stats.artsByGrid)
+        .sort((a, b) => {
+          const [f1, g1] = a[0].split(':');
+          const [f2, g2] = b[0].split(':');
+          return parseInt(f1) !== parseInt(f2) ? parseInt(f1) - parseInt(f2) : g1.localeCompare(g2);
+        })
+        .map(([grid, artList]) => {
+          const arts = Array.isArray(artList) ? artList : [];
+          const details = arts.map(art => `
+            <div style="margin-bottom:10px;padding:10px;border:1px solid #c8d5e8;border-radius:10px;background:#f0f4fb">
+              <div style="font-weight:700;color:#0B3D91">${escapeHtml(art.title || 'Untitled')}</div>
+              <div style="font-size:11px;color:#9db2bd;margin-top:4px">${escapeHtml(art.artist || 'Unknown artist')}</div>
+              <div style="font-size:11px;color:#4a6080;margin-top:6px;line-height:1.4">${escapeHtml(art.description || 'No description')}</div>
+              <div style="font-size:10px;color:#0B3D91;margin-top:8px;font-family:monospace">x:${art.x ?? 'N/A'} y:${art.y ?? 'N/A'}</div>
+            </div>
+          `).join('');
+          return `<tr><td>${escapeHtml(grid)}</td><td>${details || '<span style="color:#4a6080">No art detail</span>'}</td></tr>`;
+        })
+        .join('');
+      gridTable.innerHTML = rows || '<tr><td colspan="2" style="color:#4a6080">No data</td></tr>';
+    }
+
+    // Signal fingerprint vector section
+    if (vectorStats) {
+      document.getElementById('vectorDbName').textContent = vectorStats.vectorDb || 'qdrant';
+      document.getElementById('vectorCollectionName').textContent = vectorStats.collectionName || '—';
+      document.getElementById('vectorCount').textContent = vectorStats.vectorCount ?? '—';
+
+      const status = vectorStats.vectorBuildStatus || '—';
+      const statusEl = document.getElementById('vectorBuildStatus');
+      statusEl.textContent = status;
+      statusEl.className = 'stat-value ' + (
+        status === 'built'   ? 'stat-active'  :
+        status === 'empty'   ? 'stat-offline' :
+        status === 'offline' ? 'stat-disabled': 'stat-disabled'
+      );
+
+      const cells = vectorStats.fingerprintCells || [];
+      const cellsTable = document.getElementById('vectorCellsTable');
+      if (cells.length === 0) {
+        cellsTable.innerHTML = `<tr><td colspan="6" style="color:#4a6080;text-align:center">
+          ${vectorStats.error ? escapeHtml(vectorStats.error) : 'No fingerprint vectors found in collection'}
+        </td></tr>`;
+      } else {
+        cellsTable.innerHTML = cells.map((c, i) => `
+          <tr>
+            <td>Floor ${escapeHtml(String(c.floorId ?? '—'))}</td>
+            <td style="font-family:monospace;font-weight:700;color:#0B3D91">${escapeHtml(String(c.gridId ?? '—'))}</td>
+            <td style="font-family:monospace;font-size:11px;color:#4a6080">${escapeHtml(String(c.id ?? i))}</td>
+            <td style="font-family:monospace;font-size:12px;color:#4a6080">${escapeHtml(String(c.vectorSize ?? (Array.isArray(c.vector) ? c.vector.length : '—')))}</td>
+            <td style="min-width:420px;max-width:720px">${formatVector(c.vector)}</td>
+            <td><span class="badge badge-active">indexed</span></td>
+          </tr>`).join('');
+      }
+    }
   }
 
   // Init

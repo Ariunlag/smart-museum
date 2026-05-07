@@ -8,10 +8,12 @@ import com.smartmuseum.core.integration.artinfo.http.dto.ArtByIdResult;
 import com.smartmuseum.core.integration.artinfo.http.dto.ArtInfoResult;
 import com.smartmuseum.core.integration.mqtt.HeatmapPublisher;
 import com.smartmuseum.core.orchestration.port.ArtInfoClient;
+import com.smartmuseum.core.registry.RegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +25,6 @@ import java.util.Map;
  *  2. Push the result to the user over WebSocket
  *  3. Update heatmap when location changes
  */
-import com.smartmuseum.core.registry.RegistryService;
-
 @Service
 public class ProximityScanUseCase {
 
@@ -52,18 +52,18 @@ public class ProximityScanUseCase {
         log.info("Proximity scan: device={} artId={} source={}",
                 req.deviceId(), req.artId(), req.source());
 
-        // ArtInfo service ACTIVE эсэхийг шалгана
+        // Verify ArtInfo service is ACTIVE before proceeding
         if (!registryService.isServiceActive("artinfo-service")) {
             log.warn("ArtInfo service is not ACTIVE, skipping proximity scan");
             wsHandler.push(req.deviceId(),
                     new PushMessage("service_unavailable", req.deviceId(),
-                            java.util.Map.of("service", "artinfo-service",
-                                    "source", req.source() != null ? req.source() : "QR"))
+                            Map.of("service", "artinfo-service",
+                                   "source", req.source() != null ? req.source() : "QR"))
             );
             return;
         }
 
-        // 1. ArtInfo-с artId-р art + gridId авна
+        // 1. Fetch art details (including grid location) from ArtInfo by artId
         ArtByIdResult art;
         try {
             art = artInfoClient.findById(req.artId());
@@ -77,39 +77,39 @@ public class ProximityScanUseCase {
             return;
         }
 
-        // 2. WebSocket → user-д push
-        wsHandler.push(req.deviceId(),
-                new PushMessage(
-                        "location_update",
-                        req.deviceId(),
-                        Map.of(
-                                "floorId", art.floorId(),
-                                "x",       art.x(),
-                                "y",       art.y(),
-                                "source",  req.source() != null ? req.source() : "QR",
-                                "arts",    List.of(new ArtInfoResult.ArtDto(
-                                        art.artId(),
-                                        art.title(),
-                                        art.artist(),
-                                        art.description()
-                                ))
-                        )
-                )
-        );
+        // 2. Push location update to device over WebSocket.
+        // Use HashMap instead of Map.of() because art coordinates can theoretically be null.
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("floorId", art.floorId());
+        payload.put("x",       art.x());
+        payload.put("y",       art.y());
+        payload.put("source",  req.source() != null ? req.source() : "QR");
+        payload.put("arts",    List.of(new ArtInfoResult.ArtDto(
+                art.artId(), art.title(), art.artist(), art.description())));
+        wsHandler.push(req.deviceId(), new PushMessage("location_update", req.deviceId(), payload));
+
+        // record last art info for admin UI and touch session
+        try {
+            if (art != null) {
+                sessionRegistry.recordLastArt(req.deviceId(), art.artId(), art.title(), art.artist(), art.description(), req.source() != null ? req.source() : "QR");
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to record last art for {}: {}", req.deviceId(), ex.getMessage());
+        }
 
         sessionRegistry.touch(req.deviceId());
 
-        // 3. Heatmap update — байрлал өөрчлөгдсөн бол
-        boolean changed = sessionRegistry.hasLocationChanged(
+        // 3. Publish heatmap event if the device moved to a new grid cell (atomic check-and-update)
+        SessionRegistry.MoveResult move = sessionRegistry.compareAndMove(
                 req.deviceId(), art.gridId(), art.floorId()
         );
-        if (changed) {
-            String prevGridId = sessionRegistry.getLastGridId(req.deviceId());
-                        Integer prevFloorId = sessionRegistry.getLastFloorId(req.deviceId());
-                        heatmapPublisher.publish(art.gridId(), art.floorId(), prevGridId, prevFloorId);
-            sessionRegistry.updateLocation(req.deviceId(), art.gridId(), art.floorId());
-            log.info("Heatmap updated via {}: grid={} floor={}",
-                    req.source(), art.gridId(), art.floorId());
+        if (move.moved()) {
+            heatmapPublisher.publish(
+                    req.deviceId(), move.sequenceNum(),
+                    art.gridId(), art.floorId(),
+                    move.prevGridId(), move.prevFloorId()
+            );
+            log.info("Heatmap updated via {}: grid={} floor={}", req.source(), art.gridId(), art.floorId());
         }
     }
 }

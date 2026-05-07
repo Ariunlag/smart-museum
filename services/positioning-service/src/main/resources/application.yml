@@ -8,6 +8,9 @@ spring:
     import: optional:file:${MUSEUM_LAYOUT_FILE:config/smart_museum/layout.yml}
 
 museum:
+  core:
+    base-url: ${MUSEUM_CORE_BASE_URL:http://localhost:8080}
+    status-check-interval-ms: ${MUSEUM_CORE_STATUS_CHECK_INTERVAL_MS:3000}
   # Place-specific values (building, beacon coordinates) are loaded
   # from external layout file via MUSEUM_LAYOUT_FILE.
   # Keep safe runtime defaults here only.

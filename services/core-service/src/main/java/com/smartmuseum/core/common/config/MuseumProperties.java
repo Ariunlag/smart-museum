@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MuseumProperties {
 
     private String    spaceId   = "smart-museum";
+    private Admin     admin     = new Admin();
     private Websocket websocket = new Websocket();
     private Services  services  = new Services();
     private Mqtt      mqtt      = new Mqtt();
@@ -13,10 +14,18 @@ public class MuseumProperties {
 
     public String    getSpaceId()   { return spaceId; }
     public void      setSpaceId(String v){ this.spaceId = v; }
+    public Admin     getAdmin()     { return admin; }
     public Websocket getWebsocket() { return websocket; }
     public Services  getServices()  { return services; }
     public Mqtt      getMqtt()      { return mqtt; }
     public Registry  getRegistry()  { return registry; }
+
+    // ── Admin ────────────────────────────────────────────
+    public static class Admin {
+        private String apiKey = "museum-admin-dev-key";
+        public String getApiKey()         { return apiKey; }
+        public void   setApiKey(String v) { this.apiKey = v; }
+    }
 
     // ── WebSocket ────────────────────────────────────────
     public static class Websocket {

@@ -48,7 +48,7 @@ public class FingerprintSeeder implements ApplicationRunner {
 
         initBeaconPositions(total, rows, cols);
 
-        qdrant.ensureCollection(total);
+        qdrant.recreateCollection(total);
         log.info("Seeding: {}x{} grid, {} floors, {} beacons", rows, cols, floors, total);
 
         List<Map<String, Object>> points = new ArrayList<>();

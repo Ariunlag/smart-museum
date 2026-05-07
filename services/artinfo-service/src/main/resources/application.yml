@@ -11,8 +11,13 @@ spring:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/smartmuseum}
 
 museum:
+  core:
+    base-url: ${MUSEUM_CORE_BASE_URL:http://localhost:8080}
+    status-check-interval-ms: ${MUSEUM_CORE_STATUS_CHECK_INTERVAL_MS:3000}
+  admin:
+    api-key: ${MUSEUM_ADMIN_API_KEY:museum-admin-dev-key}  # Override in production via env var
   art:
-    nearby-range: 2
+    nearby-range: 3
     max-results: 2
     seed-count: 100
 

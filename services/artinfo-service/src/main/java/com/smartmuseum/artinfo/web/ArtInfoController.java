@@ -6,9 +6,11 @@ import com.smartmuseum.artinfo.web.dto.ArtInfoResponse;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/internal/art")
+@CrossOrigin(origins = "*")
 public class ArtInfoController {
 
     private final ArtInfoService service;
@@ -31,9 +33,21 @@ public class ArtInfoController {
         return service.findByIdWithLocation(artId);
     }
 
-    // Бүх art-н ID жагсаалт (simulator-д ашиглана)
+    // List of all art IDs (used by the simulator)
     @GetMapping
     public List<ArtInfoResponse.ArtDto> listAll() {
         return service.findAll();
+    }
+
+    // Admin: Art statistics
+    @GetMapping("/admin/system/art-stats")
+    public Map<String, Object> artStatistics() {
+        return service.getArtStatistics();
+    }
+
+    // Admin: vector build and Qdrant status
+    @GetMapping("/admin/system/vector-stats")
+    public Map<String, Object> vectorStatistics() {
+        return service.getVectorStatistics();
     }
 }

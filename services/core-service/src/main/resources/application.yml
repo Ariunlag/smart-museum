@@ -12,6 +12,8 @@ spring:
 
 museum:
   space-id: smart-museum-chicago   # Topic namespace
+  admin:
+    api-key: ${MUSEUM_ADMIN_API_KEY:museum-admin-dev-key}  # Override in production via env var
 
   websocket:
     path: /ws

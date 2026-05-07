@@ -1,6 +1,7 @@
 package com.smartmuseum.heatmap.mqtt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartmuseum.heatmap.service.HeatmapEventGuard;
 import com.smartmuseum.heatmap.service.HeatmapService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,14 @@ import java.util.Map;
  *
  * Expected payload:
  * {
- *   "gridId":    "C3",
- *   "floorId":   1,
- *   "prevGridId": "B2",   // null on first entry
- *   "timestamp": 123456
+ *   "eventId":    "uuid",
+ *   "deviceId":   "phone-123",
+ *   "sequenceNum": 7,
+ *   "gridId":     "C3",       // null when device is leaving
+ *   "floorId":    1,
+ *   "prevGridId": "B2",       // null on first entry
+ *   "prevFloorId": 1,
+ *   "timestamp":  123456
  * }
  */
 @Component
@@ -26,12 +31,16 @@ public class HeatmapSubscriber {
 
     private static final Logger log = LoggerFactory.getLogger(HeatmapSubscriber.class);
 
-    private final HeatmapService service;
-    private final ObjectMapper   mapper;
+    private final HeatmapEventGuard eventGuard;
+    private final HeatmapService    service;
+    private final ObjectMapper      mapper;
 
-    public HeatmapSubscriber(HeatmapService service, ObjectMapper mapper) {
-        this.service = service;
-        this.mapper  = mapper;
+    public HeatmapSubscriber(HeatmapEventGuard eventGuard,
+                             HeatmapService service,
+                             ObjectMapper mapper) {
+        this.eventGuard = eventGuard;
+        this.service    = service;
+        this.mapper     = mapper;
     }
 
     @ServiceActivator(inputChannel = "mqttInputChannel")
@@ -39,16 +48,41 @@ public class HeatmapSubscriber {
         try {
             var payload = mapper.readValue(message.getPayload(), Map.class);
 
-            String gridId    = (String) payload.get("gridId");
-            int    floorId   = ((Number) payload.get("floorId")).intValue();
-            String prevGridId = (String) payload.get("prevGridId"); // null боломжтой
-            Number prevFloor  = (Number) payload.get("prevFloorId");
+            String eventId  = (String) payload.get("eventId");
+            String deviceId = (String) payload.get("deviceId");
+            Number seqNum   = (Number) payload.get("sequenceNum");
+            Long sequenceNum = seqNum != null ? seqNum.longValue() : null;
+
+            if (!eventGuard.shouldProcess(eventId, deviceId, sequenceNum)) {
+                log.debug("Skipping duplicate or out-of-order heatmap event: eventId={} deviceId={} seq={}",
+                        eventId, deviceId, sequenceNum);
+                return;
+            }
+
+            String  gridId     = (String) payload.get("gridId");
+            Number  floorNum   = (Number) payload.get("floorId");
+            int     floorId    = floorNum != null ? floorNum.intValue() : -1;
+            String  prevGridId = (String) payload.get("prevGridId");
+            Number  prevFloor  = (Number) payload.get("prevFloorId");
             Integer prevFloorId = prevFloor != null ? prevFloor.intValue() : null;
 
             if (gridId == null) {
-                // Хэрэглэгч disconnect → зөвхөн leave
-                service.processLeave(prevGridId, floorId);
+                // Device disconnect — decrement previous cell counter
+                if (prevFloorId == null) {
+                    log.warn("Skipping leave event without prevFloorId: eventId={} deviceId={}", eventId, deviceId);
+                    return;
+                }
+                if (prevGridId == null) {
+                    log.warn("Skipping leave event without prevGridId: eventId={} deviceId={}", eventId, deviceId);
+                    return;
+                }
+                service.processLeave(prevGridId, prevFloorId);
             } else {
+                if (floorId < 0) {
+                    log.warn("Skipping event without valid floorId: eventId={} deviceId={} gridId={}",
+                            eventId, deviceId, gridId);
+                    return;
+                }
                 service.processEvent(gridId, floorId, prevGridId, prevFloorId);
             }
 

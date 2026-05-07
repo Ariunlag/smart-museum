@@ -5,11 +5,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "museum")
 public class MuseumProperties {
 
+    private Admin    admin    = new Admin();
     private Building building = new Building();
-    private Art art = new Art();
+    private Art      art      = new Art();
 
+    public Admin    getAdmin()    { return admin; }
     public Building getBuilding() { return building; }
-    public Art getArt() { return art; }
+    public Art      getArt()      { return art; }
+
+    // ── Admin ────────────────────────────────────────────
+    public static class Admin {
+        private String apiKey = "museum-admin-dev-key";
+        public String getApiKey()         { return apiKey; }
+        public void   setApiKey(String v) { this.apiKey = v; }
+    }
 
     public static class Building {
         private int floors = 3;

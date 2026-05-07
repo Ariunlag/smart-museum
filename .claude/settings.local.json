@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -H \"X-Admin-Key: museum-admin-dev-key\" http://localhost:8080/admin/services)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(s['serviceId'], s['status']\\) for s in data]\")",
+      "Bash(curl -s http://localhost:8083/api/heatmap/1)"
+    ]
+  }
+}

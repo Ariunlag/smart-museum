@@ -24,7 +24,7 @@ public class QdrantRepository {
         this.props        = props;
     }
 
-    public void ensureCollection(int vectorSize) {
+    public void recreateCollection(int vectorSize) {
         var exists = qdrantClient.get()
                 .uri("/collections/{name}", props.getCollection())
                 .retrieve()
@@ -33,8 +33,12 @@ public class QdrantRepository {
                 .block();
 
         if (exists != null && !exists.isEmpty()) {
-            log.info("Collection already exists: {}", props.getCollection());
-            return;
+            qdrantClient.delete()
+                    .uri("/collections/{name}", props.getCollection())
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+            log.info("Collection deleted before reseed: {}", props.getCollection());
         }
 
         qdrantClient.put()

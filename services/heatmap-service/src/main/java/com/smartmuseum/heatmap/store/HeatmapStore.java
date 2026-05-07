@@ -27,8 +27,10 @@ public class HeatmapStore {
 
     /** User leaves a grid cell -> -1 (never below 0). */
     public void leave(String gridId, int floorId) {
-        counts.computeIfPresent(key(gridId, floorId),
-                (k, v) -> Math.max(0, v - 1));
+        counts.computeIfPresent(key(gridId, floorId), (k, v) -> {
+            int next = v - 1;
+            return next > 0 ? next : null;
+        });
     }
 
     /** Returns current people count for a grid cell. */

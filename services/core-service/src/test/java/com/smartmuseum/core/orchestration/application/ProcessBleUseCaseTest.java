@@ -99,14 +99,12 @@ class ProcessBleUseCaseTest {
                 new PositioningResult("dev-1", 1, "A1", 0, 0, 0.8)
         );
         when(artInfoClient.findNearest("A1", 1)).thenReturn(new ArtInfoResult(List.of()));
-        when(sessionRegistry.hasLocationChanged("dev-1", "A1", 1)).thenReturn(true);
-        when(sessionRegistry.getLastGridId("dev-1")).thenReturn("A0");
-        when(sessionRegistry.getLastFloorId("dev-1")).thenReturn(2);
+        when(sessionRegistry.compareAndMove("dev-1", "A1", 1)).thenReturn(
+                new SessionRegistry.MoveResult(true, "A0", 2, 7L));
 
         useCase.handle(sampleRequest());
 
-        verify(heatmapPublisher).publish("A1", 1, "A0", 2);
-        verify(sessionRegistry).updateLocation("dev-1", "A1", 1);
+        verify(heatmapPublisher).publish("dev-1", 7L, "A1", 1, "A0", 2);
     }
 
     private BleIngestRequest sampleRequest() {

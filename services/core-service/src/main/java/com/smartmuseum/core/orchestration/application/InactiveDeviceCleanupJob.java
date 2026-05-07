@@ -31,7 +31,7 @@ public class InactiveDeviceCleanupJob {
         var removed = sessionRegistry.removeInactive(timeout);
 
         removed.forEach(device -> {
-            heatmapPublisher.publishLeave(device.lastGridId(), device.lastFloorId());
+            heatmapPublisher.publishLeave(device.deviceId(), device.lastEventSequence(), device.lastGridId(), device.lastFloorId());
             log.info("Inactive device removed from heatmap: deviceId={} floor={} grid={}",
                     device.deviceId(), device.lastFloorId(), device.lastGridId());
         });

@@ -17,8 +17,8 @@ place:
 museum:
   building:
     floors: 3
-    grid-rows: 20
-    grid-cols: 20
+    grid-rows: 10
+    grid-cols: 10
     cell-size-meters: 2
     floor-height-meters: 4
 

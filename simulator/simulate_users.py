@@ -1,12 +1,12 @@
 """
-Smart Museum — User Simulator
-==============================
-Олон хэрэглэгч нэгэн зэрэг дараах үйлдлүүдийг random хийнэ:
-  - BLE signal  → POST /ble/readings
-  - NFC scan    → POST /proximity/scan (source: NFC)
-  - QR scan     → POST /proximity/scan (source: QR)
+Smart Museum - User Simulator
+=============================
+Simulates multiple users performing random actions:
+  - BLE signal -> POST /ble/readings
+  - NFC scan   -> POST /proximity/scan (source: NFC)
+  - QR scan    -> POST /proximity/scan (source: QR)
 
-Ажиллуулах:
+Run:
   pip install requests websocket-client pyyaml
   python simulate_users.py
 """
@@ -27,7 +27,7 @@ except Exception:
     yaml = None
 
 
-# ── Config ─────────────────────────────────────────────────
+# Config
 CORE_URL = os.getenv("SIM_CORE_URL", "http://localhost:8080")
 ARTINFO_URL = os.getenv("SIM_ARTINFO_URL", "http://localhost:8082")
 WS_URL = os.getenv("SIM_WS_URL", CORE_URL.replace("http://", "ws://").replace("https://", "wss://"))
@@ -68,13 +68,13 @@ SIM_LAYOUT_FILE = (
     or DEFAULT_LAYOUT_CANDIDATE
 )
 
-NUM_USERS = int(os.getenv("SIM_NUM_USERS", "50"))
-SIM_DURATION = int(os.getenv("SIM_DURATION", "30"))  # секунд (0 = infinite)
-MIN_INTERVAL = float(os.getenv("SIM_MIN_INTERVAL", "2"))
-MAX_INTERVAL = float(os.getenv("SIM_MAX_INTERVAL", "6"))
+NUM_USERS = int(os.getenv("SIM_NUM_USERS", "100"))
+SIM_DURATION = int(os.getenv("SIM_DURATION", "0"))  # seconds (0 = infinite)
+MIN_INTERVAL = float(os.getenv("SIM_MIN_INTERVAL", "5"))
+MAX_INTERVAL = float(os.getenv("SIM_MAX_INTERVAL", "10"))
 
 
-# ── Site config (layout-аас уншина) ─────────────────────────
+# Site config loaded from layout.yml
 SITE_NAME = "Unknown Site"
 SITE_ID = "unknown-site"
 FLOORS = [1]
@@ -83,12 +83,12 @@ POSITIONING_BEACONS_BY_FLOOR = {}
 ALL_BEACONS = []
 
 
-# ArtInfo seed-с авах art ID-үүд (MongoDB-д байгаа)
-# Эхлээд fetch хийнэ, олдохгүй бол random string ашиглана
+# Art IDs loaded from ArtInfo seed data in MongoDB.
+# If no IDs are found, proximity scans are skipped.
 ART_IDS = []
 
 
-# ── Stats ────────────────────────────────────────────────────
+# Stats
 stats = {
     "ble_sent": 0,
     "ble_ok": 0,
@@ -106,7 +106,7 @@ def inc(key):
         stats[key] += 1
 
 
-# ── Helpers ──────────────────────────────────────────────────
+# Helpers
 def log(user_id, msg):
     ts = datetime.now().strftime("%H:%M:%S")
     print(f"[{ts}] User-{user_id:02d} | {msg}")
@@ -131,12 +131,12 @@ def _set_default_layout():
 
 
 def load_layout_config():
-    """SIM_LAYOUT_FILE-с site/floor/beacon config ачаална."""
+    """Load site, floor, and beacon config from SIM_LAYOUT_FILE."""
     global SITE_NAME, SITE_ID, FLOORS
     global FLOOR_BEACONS_BY_FLOOR, POSITIONING_BEACONS_BY_FLOOR, ALL_BEACONS
 
     if yaml is None:
-        print("[WARN] PyYAML алга байна. Default museum beacon config ашиглана.")
+        print("[WARN] PyYAML is not installed. Using default museum beacon config.")
         _set_default_layout()
         return
 
@@ -175,7 +175,7 @@ def load_layout_config():
 
         floors = sorted(set(list(floor_map.keys()) + list(pos_map.keys())))
         if not floors:
-            raise ValueError("Layout дээр beacon positions байхгүй байна.")
+            raise ValueError("Layout does not contain any beacon positions.")
 
         FLOOR_BEACONS_BY_FLOOR = floor_map
         POSITIONING_BEACONS_BY_FLOOR = pos_map
@@ -183,13 +183,13 @@ def load_layout_config():
         ALL_BEACONS = all_beacons
         print(f"[INIT] Layout loaded from: {resolved_layout}")
     except Exception as e:
-        print(f"[WARN] Layout уншихад алдаа гарлаа ({SIM_LAYOUT_FILE}): {e}")
-        print("[WARN] Default museum beacon config ашиглана.")
+        print(f"[WARN] Failed to load layout ({SIM_LAYOUT_FILE}): {e}")
+        print("[WARN] Using default museum beacon config.")
         _set_default_layout()
 
 
 def maybe_change_floor(current_floor):
-    """Хэрэглэгч бага магадлалаар давхар солино."""
+    """Occasionally move the user to another floor."""
     if len(FLOORS) <= 1:
         return current_floor
     if random.random() < 0.15:
@@ -199,7 +199,7 @@ def maybe_change_floor(current_floor):
 
 
 def random_ble_readings(current_floor, num_beacons=4):
-    """Тухайн floor-т ойр beacon-уудыг илүү хүчтэй, бусдыг сул үүсгэнэ."""
+    """Generate stronger RSSI values for same-floor beacons and weaker values for other floors."""
     readings = []
 
     anchors = FLOOR_BEACONS_BY_FLOOR.get(current_floor, [])
@@ -232,7 +232,7 @@ def random_ble_readings(current_floor, num_beacons=4):
 
 
 def fetch_art_ids():
-    """ArtInfo service-с бүх art ID-үүд авна."""
+    """Fetch all art IDs from the ArtInfo service."""
     global ART_IDS
     try:
         r = requests.get(f"{ARTINFO_URL}/internal/art", timeout=3)
@@ -247,14 +247,14 @@ def fetch_art_ids():
     except Exception as e:
         print(f"[WARN] Could not fetch art IDs: {e}")
 
-    # Fallback — MongoDB-с авч чадахгүй үед
+    # Fallback when ArtInfo or MongoDB data is unavailable.
     print("[WARN] Using dummy art IDs")
-    ART_IDS = []  # хоосон бол proximity scan хийхгүй
+    ART_IDS = []  # Empty list means proximity scans are skipped.
 
 
-# ── Actions ──────────────────────────────────────────────────
+# Actions
 def send_ble(user_id, current_floor):
-    """BLE signal явуулна."""
+    """Send a BLE reading batch."""
     payload = {
         "deviceId": f"sim-user-{user_id:02d}",
         "timestamp": int(time.time() * 1000),
@@ -280,7 +280,7 @@ def send_ble(user_id, current_floor):
 
 
 def send_proximity(user_id, source):
-    """QR эсвэл NFC scan явуулна."""
+    """Send a QR or NFC proximity scan."""
     if not ART_IDS:
         return
     art_id = random.choice(ART_IDS)
@@ -304,7 +304,7 @@ def send_proximity(user_id, source):
 
 
 def websocket_listener(user_id):
-    """WebSocket холбоод message хүлээнэ."""
+    """Listen for WebSocket messages from core-service."""
     device_id = f"sim-user-{user_id:02d}"
     url = f"{WS_URL}/ws?deviceId={device_id}"
 
@@ -346,19 +346,19 @@ def websocket_listener(user_id):
     ws.run_forever()
 
 
-# ── User simulation ──────────────────────────────────────────
+# User simulation
 def simulate_user(user_id, stop_event):
-    """Нэг хэрэглэгчийн random үйлдлүүд."""
+    """Run random actions for one simulated user."""
     current_floor = random.choice(FLOORS)
 
-    # WebSocket-г тусдаа thread-д асаана
+    # Run WebSocket listening in a separate thread.
     ws_thread = threading.Thread(target=websocket_listener, args=(user_id,), daemon=True)
     ws_thread.start()
 
-    # WebSocket холбогдох хүртэл хүлээ
+    # Give the WebSocket a moment to connect before sending events.
     time.sleep(random.uniform(0.5, 2.0))
 
-    actions = ["ble", "ble", "ble", "qr", "nfc"]  # BLE илүү байх магадлалтай
+    actions = ["ble","ble","ble", "ble", "ble", "qr", "nfc"]  # Bias toward BLE events.
 
     while not stop_event.is_set():
         current_floor = maybe_change_floor(current_floor)
@@ -371,12 +371,12 @@ def simulate_user(user_id, stop_event):
         elif action == "nfc":
             send_proximity(user_id, "NFC")
 
-        # Random хугацаа хүлээнэ
+        # Wait a random interval before the next action.
         wait = random.uniform(MIN_INTERVAL, MAX_INTERVAL)
         stop_event.wait(wait)
 
 
-# ── Main ─────────────────────────────────────────────────────
+# Main
 def print_stats():
     print("\n" + "=" * 50)
     print("SIMULATION STATS")
@@ -399,18 +399,18 @@ def main():
     print(f"   Layout: {SIM_LAYOUT_FILE}")
     print("=" * 50)
 
-    # Art ID-үүд fetch хийнэ
+    # Fetch art IDs for QR/NFC simulation.
     fetch_art_ids()
 
     stop_event = threading.Event()
     threads = []
 
-    # Хэрэглэгч бүрийг тусдаа thread-д ажиллуулна
+    # Start each simulated user in a separate thread.
     for i in range(1, NUM_USERS + 1):
         t = threading.Thread(target=simulate_user, args=(i, stop_event), daemon=True)
         t.start()
         threads.append(t)
-        time.sleep(0.3)  # Thread-үүд нэгэн зэрэг эхлэхгүй байхад
+        time.sleep(0.3)  # Stagger startup so users do not all begin at once.
 
     print(f"\nSimulation started with {NUM_USERS} users...\n")
 
@@ -419,7 +419,7 @@ def main():
             time.sleep(SIM_DURATION)
             stop_event.set()
         else:
-            # Infinite — Ctrl+C дарж зогсооно
+            # Infinite run. Press Ctrl+C to stop.
             while True:
                 time.sleep(1)
     except KeyboardInterrupt:

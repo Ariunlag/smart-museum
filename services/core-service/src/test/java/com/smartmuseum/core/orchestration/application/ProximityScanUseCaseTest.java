@@ -72,14 +72,12 @@ class ProximityScanUseCaseTest {
         when(artInfoClient.findById("art-1")).thenReturn(
                 new ArtByIdResult("art-1", "Title", "Artist", "Desc", "B3", 2, 2, 1)
         );
-        when(sessionRegistry.hasLocationChanged("dev-1", "B3", 2)).thenReturn(true);
-        when(sessionRegistry.getLastGridId("dev-1")).thenReturn("B2");
-        when(sessionRegistry.getLastFloorId("dev-1")).thenReturn(1);
+        when(sessionRegistry.compareAndMove("dev-1", "B3", 2)).thenReturn(
+                new SessionRegistry.MoveResult(true, "B2", 1, 3L));
 
         useCase.handle(new ProximityScanRequest("dev-1", "art-1", "QR"));
 
         verify(wsHandler).push(eq("dev-1"), any(PushMessage.class));
-        verify(heatmapPublisher).publish("B3", 2, "B2", 1);
-        verify(sessionRegistry).updateLocation("dev-1", "B3", 2);
+        verify(heatmapPublisher).publish("dev-1", 3L, "B3", 2, "B2", 1);
     }
 }
